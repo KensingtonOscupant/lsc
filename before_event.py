@@ -1010,13 +1010,18 @@ for event in lsi_num_current_events:
         tree_event = html.fromstring(r_event.content, parser=parser)
         
         start_time = tree_event.xpath('//abbr[@class="dtstart"]/text()')[0]
-        end_time = tree_event.xpath('//abbr[@class="dtend"]/text()')[0]
-        print(start_time, end_time)
-        
-        formatted_start_time = uk_time(start_time)
-        formatted_end_time = uk_time(end_time)
-        
-        date = convert_month_back(month1) + " " + date_day + " " + date_year + ", " + formatted_start_time + " to " + formatted_end_time + " p.m."
+
+        if start_time == "\n      ":
+            date = convert_month_back(month1) + " " + date_day + " " + date_year
+
+        else:
+            end_time = tree_event.xpath('//abbr[@class="dtend"]/text()')[0]
+            print(start_time, end_time)
+            
+            formatted_start_time = uk_time(start_time)
+            formatted_end_time = uk_time(end_time)
+            
+            date = convert_month_back(month1) + " " + date_day + " " + date_year + ", " + formatted_start_time + " to " + formatted_end_time + " p.m."
 
         # checks address
         address_lxml = tree3.xpath('//span[@itemprop="address"]/text()[0]')
