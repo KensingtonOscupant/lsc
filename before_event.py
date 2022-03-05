@@ -216,7 +216,7 @@ table3 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'event_header';''')
 table4 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4
+project_tables = table1 + table2 + table3 + table4 -1
 
 # acts accordingly.
 if project_tables == 4:
@@ -294,7 +294,7 @@ elif project_tables < 4 and project_tables >= 0:
     data = soup.find_all("div", {"class" : "editor-content hyphens"})
     data_string = str(data[0])
     soup = BeautifulSoup(''.join(data_string), 'html.parser')
-    for i in soup.prettify().split('here')[1].split('<hr/>'):
+    for i in soup.prettify().split('events')[1].split('<hr/>'):
         lsc_events.append('<hr/>' + ''.join(i))
     
     k = 0
@@ -351,83 +351,84 @@ elif project_tables < 4 and project_tables >= 0:
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
                 server.login(sender_email, password)
-                for line in lines:
-                    name = line[0]
-                    email = line[1]
+                with open("items.csv") as file:
+                    reader = csv.reader(file)
+                    next(reader)  # Skip header row
+                    for name, email in reader:
                         
-                    # excludes people on the CSV. Since this email is for a FUELS event,
-                    # it is not relevant for LSI. It would be more elegant to also store this
-                    # in a database, but a CSV is easier for now, might change later
-                    if name == "Feneberg":
-                        continue
-                    
-                    # note in case anyone should ever edit this: The following %s are used as normal
-                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                    # look almost the same, they are used for parameter substitution and it is important to 
-                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                    # to SQL injection attacks. Have a very close look at the difference in usage.
-                    
-                    text_version = '''\
-                    Lieber Herr %s,
-                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                    Dies ist eine LSC-Testmail für
-                    www.laws-of-social-cohesion.de''' % (name)
-                    
-                    # general note on how emails work: if you receive an email with formatting, 
-                    # it always comes in two versions: plain text (above)
-                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                    html_version = '''\
-                    <html>
-                        <body>
-                        <p>Sehr geehrter Herr %s,<br>
-                            <br>
-                            wir aktualisieren gerade die Events auf der Seite des Projekts "Laws of Social Cohesion" und mir ist 
-                            aufgefallen, dass dort eine Veranstaltung mit %s gelistet ist. Es wäre für mich wichtig zu erfahren, ob diese
-                            Veranstaltung als "Hosted by LSI/FUELS/RiK" gekennzeichnet wurde. Wenn das der Fall ist, würde ich mich freuen,
-                            wenn Sie mich darüber hier informieren könnten. Bitte folgen Sie dem Link auch dann, wenn die Veranstaltung
-                            nicht von den einer der drei Partnerinstitutionen ausgerichtet werden sollte und Sie die Veranstaltung nicht
-                            weiter auf der Website führen möchten (z. B. weil die Veranstaltung veraltet ist).
-                            Soll ich die Meldung beibehalten, würde ich sie in folgender Form auf der Website aufführen:<br>
-                            %s 
-                            Möchten Sie die Meldung in dieser Form annehmen, klicken Sie bitte hier. Sollten Sie die 
-                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber hier
-                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert 
-                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme
-                            bestehen, helfe ich immer gerne.<br>
-                            <br>
-                            <br>
-                            Mit freundlichen Grüßen,<br>
-                            Ihr Benjamin Mantay<br>
-                            <br>
-                            -------------<br>
-                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                            <br>
-                            <br>
-                            <br>
-                        </p>
-                        </body>
-                    </html>
-                    ''' % (name, speaker, event)
-                    
-                    message = MIMEMultipart("alternative")
-                    message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
-                    message["From"] = sender_email
-                    message["To"] = email
-                    
-                    # Turn strings into plain/html MIMEText objects
-                    part1 = MIMEText(text_version, "plain")
-                    part2 = MIMEText(html_version, "html")
-                    
-                    # Add HTML/plain-text parts to MIMEMultipart message
-                    # The email client will try to render the last part first
-                    message.attach(part1)
-                    message.attach(part2)
-                    server.sendmail(
-                        sender_email,
-                        email,
-                        message.as_string(),
-                    )
+                        # excludes people on the CSV. Since this email is for a FUELS event,
+                        # it is not relevant for LSI. It would be more elegant to also store this
+                        # in a database, but a CSV is easier for now, might change later
+                        if name == "Feneberg":
+                            continue
+                        
+                        # note in case anyone should ever edit this: The following %s are used as normal
+                        # string manipulation placeholders. Although the %s in the MySQL queries in this script
+                        # look almost the same, they are used for parameter substitution and it is important to 
+                        # understand this difference as using string manipulation in SQL queries makes them vulnerable
+                        # to SQL injection attacks. Have a very close look at the difference in usage.
+                        
+                        text_version = '''\
+                        Lieber Herr %s,
+                        (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
+                        Dies ist eine LSC-Testmail für
+                        www.laws-of-social-cohesion.de''' % (name)
+                        
+                        # general note on how emails work: if you receive an email with formatting, 
+                        # it always comes in two versions: plain text (above)
+                        # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
+                        html_version = '''\
+                        <html>
+                            <body>
+                            <p>Sehr geehrter Herr %s,<br>
+                                <br>
+                                wir aktualisieren gerade die Events auf der Seite des Projekts "Laws of Social Cohesion" und mir ist 
+                                aufgefallen, dass dort eine Veranstaltung mit %s gelistet ist. Es wäre für mich wichtig zu erfahren, ob diese
+                                Veranstaltung als "Hosted by LSI/FUELS/RiK" gekennzeichnet wurde. Wenn das der Fall ist, würde ich mich freuen,
+                                wenn Sie mich darüber hier informieren könnten. Bitte folgen Sie dem Link auch dann, wenn die Veranstaltung
+                                nicht von den einer der drei Partnerinstitutionen ausgerichtet werden sollte und Sie die Veranstaltung nicht
+                                weiter auf der Website führen möchten (z. B. weil die Veranstaltung veraltet ist).
+                                Soll ich die Meldung beibehalten, würde ich sie in folgender Form auf der Website aufführen:<br>
+                                %s 
+                                Möchten Sie die Meldung in dieser Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                                Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber hier
+                                informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert 
+                                und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme
+                                bestehen, helfe ich immer gerne.<br>
+                                <br>
+                                <br>
+                                Mit freundlichen Grüßen,<br>
+                                Ihr Benjamin Mantay<br>
+                                <br>
+                                -------------<br>
+                                <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
+                                Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
+                                <br>
+                                <br>
+                                <br>
+                            </p>
+                            </body>
+                        </html>
+                        ''' % (name, speaker, event)
+                        
+                        message = MIMEMultipart("alternative")
+                        message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
+                        message["From"] = sender_email
+                        message["To"] = email
+                        
+                        # Turn strings into plain/html MIMEText objects
+                        part1 = MIMEText(text_version, "plain")
+                        part2 = MIMEText(html_version, "html")
+                        
+                        # Add HTML/plain-text parts to MIMEMultipart message
+                        # The email client will try to render the last part first
+                        message.attach(part1)
+                        message.attach(part2)
+                        server.sendmail(
+                            sender_email,
+                            email,
+                            message.as_string(),
+                        )
                 
     # creates FUELS event header
     c.execute('''CREATE TABLE event_header(
@@ -451,7 +452,9 @@ else:
     print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 4")
 
 
-# main part of the program: monitors changes to events on the websites
+# main part of the program: monitors changes to events on the websites 
+
+lines = csv.reader(data) # these two lines
 
 # FUELS
 for event in num_current_events:
@@ -582,85 +585,86 @@ for event in num_current_events:
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
             server.login(sender_email, password)
-            for line in lines:
-                name = line[0]
-                email = line[1]
+            with open("items.csv") as file:
+                reader = csv.reader(file)
+                next(reader)  # Skip header row
+                for name, email in reader:
                     
-                # excludes people on the CSV. Since this email is for a FUELS event,
-                # it is not relevant for LSI. It would be more elegant to also store this
-                # in a database, but a CSV is easier for now, might change later
-                if name == "Feneberg":
-                    continue
-                
-                # note in case anyone should ever edit this: The following %s are used as normal
-                # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                # look almost the same, they are used for parameter substitution and it is important to 
-                # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                # to SQL injection attacks. Have a very close look at the difference in usage.
-                
-                text_version = '''\
-                Lieber Herr %s,
-                (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                Dies ist eine LSC-Testmail für
-                www.laws-of-social-cohesion.de''' % (name)
-                
-                # general note on how emails work: if you receive an email with formatting, 
-                # it always comes in two versions: plain text (above)
-                # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                html_version = '''\
-                <html>
-                    <body>
-                    <p>Sehr geehrter Herr %s,<br>
-                        <br>
-                        eben ist mir aufgefallen, dass heute eine Veranstaltung mit %s auf der
-                        Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
-                        folgendermaßen gestalten:<br>
-                        <h3><a href="%s">%s</a></h3>
-                                <blockquote>
-                                <p>%s, %s (physical/virtual event)</p>
-                                <p>Seminar with <strong>%s</strong> %s</p>
-                                <p>Hosted by FUELS</p>
-                                </blockquote>
-                        Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
-                        Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
-                        Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
-                        informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
-                        und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
-                        bestehen, helfe ich immer gerne.<br>
-                        <br>
-                        <br>
-                        Mit freundlichen Grüßen,<br>
-                        Ihr Benjamin Mantay<br>
-                        <br>
-                        -------------<br>
-                        <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                        Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                        <br>
-                        <br>
-                        <br>
-                    </p>
-                    </body>
-                </html>
-                ''' % (name, speaker, url, header, date, address, speaker, uni)
-                
-                message = MIMEMultipart("alternative")
-                message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
-                message["From"] = sender_email
-                message["To"] = email
-                
-                # Turn strings into plain/html MIMEText objects
-                part1 = MIMEText(text_version, "plain")
-                part2 = MIMEText(html_version, "html")
-                
-                # Add HTML/plain-text parts to MIMEMultipart message
-                # The email client will try to render the last part first
-                message.attach(part1)
-                message.attach(part2)
-                server.sendmail(
-                    sender_email,
-                    email,
-                    message.as_string(),
-                )
+                    # excludes people on the CSV. Since this email is for a FUELS event,
+                    # it is not relevant for LSI. It would be more elegant to also store this
+                    # in a database, but a CSV is easier for now, might change later
+                    if name == "Feneberg":
+                        continue
+                    
+                    # note in case anyone should ever edit this: The following %s are used as normal
+                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
+                    # look almost the same, they are used for parameter substitution and it is important to 
+                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
+                    # to SQL injection attacks. Have a very close look at the difference in usage.
+                    
+                    text_version = '''\
+                    Lieber Herr %s,
+                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
+                    Dies ist eine LSC-Testmail für
+                    www.laws-of-social-cohesion.de''' % (name)
+                    
+                    # general note on how emails work: if you receive an email with formatting, 
+                    # it always comes in two versions: plain text (above)
+                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
+                    html_version = '''\
+                    <html>
+                        <body>
+                        <p>Sehr geehrter Herr %s,<br>
+                            <br>
+                            eben ist mir aufgefallen, dass heute eine Veranstaltung mit %s auf der
+                            Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
+                            folgendermaßen gestalten:<br>
+                            <h3><a href="%s">%s</a></h3>
+                                    <blockquote>
+                                    <p>%s, %s (physical/virtual event)</p>
+                                    <p>Seminar with <strong>%s</strong> %s</p>
+                                    <p>Hosted by FUELS</p>
+                                    </blockquote>
+                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
+                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
+                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
+                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
+                            bestehen, helfe ich immer gerne.<br>
+                            <br>
+                            <br>
+                            Mit freundlichen Grüßen,<br>
+                            Ihr Benjamin Mantay<br>
+                            <br>
+                            -------------<br>
+                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
+                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
+                            <br>
+                            <br>
+                            <br>
+                        </p>
+                        </body>
+                    </html>
+                    ''' % (name, speaker, url, header, date, address, speaker, uni)
+                    
+                    message = MIMEMultipart("alternative")
+                    message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
+                    message["From"] = sender_email
+                    message["To"] = email
+                    
+                    # Turn strings into plain/html MIMEText objects
+                    part1 = MIMEText(text_version, "plain")
+                    part2 = MIMEText(html_version, "html")
+                    
+                    # Add HTML/plain-text parts to MIMEMultipart message
+                    # The email client will try to render the last part first
+                    message.attach(part1)
+                    message.attach(part2)
+                    server.sendmail(
+                        sender_email,
+                        email,
+                        message.as_string(),
+                    )
         
         # warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
         # (this can be extended to any number if someone is willing to create the routing URLs for it)
@@ -692,6 +696,8 @@ for event in num_current_events:
     tree = html.fromstring(r.content, parser=parser)
 
 # RiK
+
+lines = csv.reader(data) # these two lines
 
 # gets list with no of titles of events (i bet there's a more efficient way to do this)
 rik_count_num_current_events = round(tree6.xpath("count(//*[@id=\"c51\"]/div/div/a)"))
@@ -813,92 +819,93 @@ for event in rik_num_current_events:
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
             server.login(sender_email, password)
-            for line in lines:
-                name = line[0]
-                email = line[1]
+            with open("items.csv") as file:
+                reader = csv.reader(file)
+                next(reader)  # Skip header row
+                for name, email in reader:
+                
+                    # excludes people on the CSV. Since this email is for a FUELS event,
+                    # it is not relevant for LSI. It would be more elegant to also store this
+                    # in a database, but a CSV is easier for now, might change later
+                    if name == "Feneberg":
+                        continue
                     
-                # excludes people on the CSV. Since this email is for a FUELS event,
-                # it is not relevant for LSI. It would be more elegant to also store this
-                # in a database, but a CSV is easier for now, might change later
-                if name == "Feneberg":
-                    continue
-                
-                # note in case anyone should ever edit this: The following %s are used as normal
-                # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                # look almost the same, they are used for parameter substitution and it is important to 
-                # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                # to SQL injection attacks. Have a very close look at the difference in usage.
-                
-                if speaker == "":
-                    speaker_mail = ""
-                    speaker_mail2 = ""
-                else:
-                    speaker_mail = "mit " + speaker
-                    speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker)
+                    # note in case anyone should ever edit this: The following %s are used as normal
+                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
+                    # look almost the same, they are used for parameter substitution and it is important to 
+                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
+                    # to SQL injection attacks. Have a very close look at the difference in usage.
                     
-                text_version = '''\
-                Lieber Herr %s,
-                (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                Dies ist eine LSC-Testmail für
-                www.laws-of-social-cohesion.de''' % (name)
-                
-                # general note on how emails work: if you receive an email with formatting, 
-                # it always comes in two versions: plain text (above)
-                # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                html_version = '''\
-                <html>
-                    <body>
-                    <p>Sehr geehrter Herr %s,<br>
-                        <br>
-                        eben ist mir aufgefallen, dass heute eine Veranstaltung %s auf der
-                        Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
-                        folgendermaßen gestalten:<br>
-                        <h3><a href="%s">%s</a></h3>
-                                <blockquote>
-                                <p>%s, %s </p>
-                                <p>%s </p>
-                                <p>Hosted by Recht im Kontext</p>
-                                </blockquote>
-                        Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
-                        Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
-                        Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
-                        informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
-                        und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
-                        bestehen, helfe ich immer gerne.<br>
-                        <br>
-                        <br>
-                        Mit freundlichen Grüßen,<br>
-                        Ihr Benjamin Mantay<br>
-                        <br>
-                        -------------<br>
-                        <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                        Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                        <br>
-                        <br>
-                        <br>
-                    </p>
-                    </body>
-                </html>
-                ''' % (name, speaker_mail, url, header, date, address, speaker_mail2)
-                
-                message = MIMEMultipart("alternative")
-                message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
-                message["From"] = sender_email
-                message["To"] = email
-                
-                # Turn strings into plain/html MIMEText objects
-                part1 = MIMEText(text_version, "plain")
-                part2 = MIMEText(html_version, "html")
-                
-                # Add HTML/plain-text parts to MIMEMultipart message
-                # The email client will try to render the last part first
-                message.attach(part1)
-                message.attach(part2)
-                server.sendmail(
-                    sender_email,
-                    email,
-                    message.as_string(),
-                )
+                    if speaker == "":
+                        speaker_mail = ""
+                        speaker_mail2 = ""
+                    else:
+                        speaker_mail = "mit " + speaker
+                        speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker)
+                        
+                    text_version = '''\
+                    Lieber Herr %s,
+                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
+                    Dies ist eine LSC-Testmail für
+                    www.laws-of-social-cohesion.de''' % (name)
+                    
+                    # general note on how emails work: if you receive an email with formatting, 
+                    # it always comes in two versions: plain text (above)
+                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
+                    html_version = '''\
+                    <html>
+                        <body>
+                        <p>Sehr geehrter Herr %s,<br>
+                            <br>
+                            eben ist mir aufgefallen, dass heute eine Veranstaltung %s auf der
+                            Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
+                            folgendermaßen gestalten:<br>
+                            <h3><a href="%s">%s</a></h3>
+                                    <blockquote>
+                                    <p>%s, %s </p>
+                                    <p>%s </p>
+                                    <p>Hosted by Recht im Kontext</p>
+                                    </blockquote>
+                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
+                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
+                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
+                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
+                            bestehen, helfe ich immer gerne.<br>
+                            <br>
+                            <br>
+                            Mit freundlichen Grüßen,<br>
+                            Ihr Benjamin Mantay<br>
+                            <br>
+                            -------------<br>
+                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
+                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
+                            <br>
+                            <br>
+                            <br>
+                        </p>
+                        </body>
+                    </html>
+                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2)
+                    
+                    message = MIMEMultipart("alternative")
+                    message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
+                    message["From"] = sender_email
+                    message["To"] = email
+                    
+                    # Turn strings into plain/html MIMEText objects
+                    part1 = MIMEText(text_version, "plain")
+                    part2 = MIMEText(html_version, "html")
+                    
+                    # Add HTML/plain-text parts to MIMEMultipart message
+                    # The email client will try to render the last part first
+                    message.attach(part1)
+                    message.attach(part2)
+                    server.sendmail(
+                        sender_email,
+                        email,
+                        message.as_string(),
+                    )
         
         # warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
         # (this can be extended to any number if someone is willing to create the routing URLs for it)
@@ -930,6 +937,9 @@ for event in rik_num_current_events:
     tree = html.fromstring(r.content, parser=parser)
     
 # LSI
+
+lines = csv.reader(data) # these two lines
+
 for event in lsi_num_current_events:
     # checks if event is already in database
     new_event = tree3.xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
@@ -1074,92 +1084,93 @@ for event in lsi_num_current_events:
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
             server.login(sender_email, password)
-            for line in lines:
-                name = line[0]
-                email = line[1]
+            with open("items.csv") as file:
+                reader = csv.reader(file)
+                next(reader)  # Skip header row
+                for name, email in reader:
                     
-                # excludes people on the CSV. Since this email is for a FUELS event,
-                # it is not relevant for LSI. It would be more elegant to also store this
-                # in a database, but a CSV is easier for now, might change later
-                if name == "Feneberg":
-                    continue
-                
-                # note in case anyone should ever edit this: The following %s are used as normal
-                # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                # look almost the same, they are used for parameter substitution and it is important to 
-                # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                # to SQL injection attacks. Have a very close look at the difference in usage.
-                
-                if speaker == "":
-                    speaker_mail = ""
-                    speaker_mail2 = ""
-                else:
-                    speaker_mail = "mit " + speaker
-                    speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker_db)
+                    # excludes people on the CSV. Since this email is for a FUELS event,
+                    # it is not relevant for LSI. It would be more elegant to also store this
+                    # in a database, but a CSV is easier for now, might change later
+                    if name == "Feneberg":
+                        continue
                     
-                text_version = '''\
-                Lieber Herr %s,
-                (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                Dies ist eine LSC-Testmail für
-                www.laws-of-social-cohesion.de''' % (name)
-                
-                # general note on how emails work: if you receive an email with formatting, 
-                # it always comes in two versions: plain text (above)
-                # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                html_version = '''\
-                <html>
-                    <body>
-                    <p>Sehr geehrter Herr %s,<br>
-                        <br>
-                        eben ist mir aufgefallen, dass heute eine Veranstaltung %s auf der
-                        Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
-                        folgendermaßen gestalten:<br>
-                        <h3><a href="%s">%s</a></h3>
-                                <blockquote>
-                                <p>%s, %s </p>
-                                <p>%s </p>
-                                <p>Hosted by LSI</p>
-                                </blockquote>
-                        Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
-                        Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
-                        Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
-                        informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
-                        und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
-                        bestehen, helfe ich immer gerne.<br>
-                        <br>
-                        <br>
-                        Mit freundlichen Grüßen,<br>
-                        Ihr Benjamin Mantay<br>
-                        <br>
-                        -------------<br>
-                        <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                        Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                        <br>
-                        <br>
-                        <br>
-                    </p>
-                    </body>
-                </html>
-                ''' % (name, speaker_mail, url, header, date, address, speaker_mail2)
-                
-                message = MIMEMultipart("alternative")
-                message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
-                message["From"] = sender_email
-                message["To"] = email
-                
-                # Turn strings into plain/html MIMEText objects
-                part1 = MIMEText(text_version, "plain")
-                part2 = MIMEText(html_version, "html")
-                
-                # Add HTML/plain-text parts to MIMEMultipart message
-                # The email client will try to render the last part first
-                message.attach(part1)
-                message.attach(part2)
-                server.sendmail(
-                    sender_email,
-                    email,
-                    message.as_string(),
-                )
+                    # note in case anyone should ever edit this: The following %s are used as normal
+                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
+                    # look almost the same, they are used for parameter substitution and it is important to 
+                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
+                    # to SQL injection attacks. Have a very close look at the difference in usage.
+                    
+                    if speaker == "":
+                        speaker_mail = ""
+                        speaker_mail2 = ""
+                    else:
+                        speaker_mail = "mit " + speaker
+                        speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker_db)
+                        
+                    text_version = '''\
+                    Lieber Herr %s,
+                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
+                    Dies ist eine LSC-Testmail für
+                    www.laws-of-social-cohesion.de''' % (name)
+                    
+                    # general note on how emails work: if you receive an email with formatting, 
+                    # it always comes in two versions: plain text (above)
+                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
+                    html_version = '''\
+                    <html>
+                        <body>
+                        <p>Sehr geehrter Herr %s,<br>
+                            <br>
+                            eben ist mir aufgefallen, dass heute eine Veranstaltung %s auf der
+                            Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
+                            folgendermaßen gestalten:<br>
+                            <h3><a href="%s">%s</a></h3>
+                                    <blockquote>
+                                    <p>%s, %s </p>
+                                    <p>%s </p>
+                                    <p>Hosted by LSI</p>
+                                    </blockquote>
+                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
+                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
+                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
+                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
+                            bestehen, helfe ich immer gerne.<br>
+                            <br>
+                            <br>
+                            Mit freundlichen Grüßen,<br>
+                            Ihr Benjamin Mantay<br>
+                            <br>
+                            -------------<br>
+                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
+                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
+                            <br>
+                            <br>
+                            <br>
+                        </p>
+                        </body>
+                    </html>
+                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2)
+                    
+                    message = MIMEMultipart("alternative")
+                    message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
+                    message["From"] = sender_email
+                    message["To"] = email
+                    
+                    # Turn strings into plain/html MIMEText objects
+                    part1 = MIMEText(text_version, "plain")
+                    part2 = MIMEText(html_version, "html")
+                    
+                    # Add HTML/plain-text parts to MIMEMultipart message
+                    # The email client will try to render the last part first
+                    message.attach(part1)
+                    message.attach(part2)
+                    server.sendmail(
+                        sender_email,
+                        email,
+                        message.as_string(),
+                    )
         
         # warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
         # (this can be extended to any number if someone is willing to create the routing URLs for it)
@@ -1436,7 +1447,7 @@ soup = BeautifulSoup(my_html, "html.parser")
 data = soup.find_all("div", {"class" : "editor-content hyphens"})
 data_string = str(data[0])
 soup = BeautifulSoup(''.join(data_string))
-for i in soup.prettify().split('here')[1].split('<hr/>'):
+for i in soup.prettify().split('events')[1].split('<hr/>'):
     lsc_events.append('<hr/>' + ''.join(i))
     
     
