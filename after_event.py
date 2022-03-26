@@ -21,12 +21,15 @@ cms_pass = os.environ.get('CMS_PASS')
 
 # set up webdriver
 
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--no-sandbox')
+# chrome_options = webdriver.ChromeOptions()
+# chrome_options.add_argument('--headless')
+# chrome_options.add_argument('--no-sandbox')
 
-driver = webdriver.Chrome(executable_path='/home/ubuntu/lsc/chromedriver', chrome_options=chrome_options,
-  service_args=['--verbose', '--log-path=/tmp/chromedriver.log'])
+# driver = webdriver.Chrome(executable_path='/home/ubuntu/lsc/chromedriver', chrome_options=chrome_options,
+#   service_args=['--verbose', '--log-path=/tmp/chromedriver.log'])
+
+s=Service(r"/Users/gisbertgurke/Desktop/chromedriver")
+driver = webdriver.Chrome(service=s)
 driver.implicitly_wait(20)
 
 # connect to db
@@ -38,8 +41,17 @@ c = conn.cursor()
 c.execute('''USE testdatabase''')
 
 # get HTML block from db
-c.execute('''SELECT html_insert FROM upcoming_events WHERE id = 1''')
-html_insert = c.fetchall()[0][0]
+c.execute('''SELECT html_insert FROM upcoming_events WHERE id > 0''')
+html_insert = c.fetchall()
+
+# add some HTML blocks together as a test
+full_html = ["<p><a href=\"Past-Events/index.html\">Past events</a></p>"]
+for element in html_insert:
+    html_section = element[0]
+    full_html.append(html_section)
+
+final_html = "".join(full_html)
+final_html = final_html + "<hr />"
 
 # gets CMS login page, logs in
 driver.get("https://cms.fu-berlin.de/cmslogin/")
@@ -186,7 +198,7 @@ try:
     html_textarea = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//textarea[@id='htmlSource']")))
     print("html_textarea detected")
     html_textarea.clear()
-    html_textarea.send_keys("test")
+    html_textarea.send_keys(final_html)
     print("insert_HTML button clicked!")
 except TimeoutException:
     print("Loading insert_HTML_button took too long.")
