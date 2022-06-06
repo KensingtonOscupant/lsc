@@ -203,7 +203,14 @@ try:
 except TimeoutException:
     print("Loading insert_HTML_button took too long.")
 
+# click submit button
 
-
-
-
+def click_submit_button():
+    try:
+        submit_button = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//input[@value='Update']")))
+        print("submit button detected")
+        submit_button.click()
+        print("submit button clicked!")
+    except TimeoutException:
+        print("Loading submit button took too much time.")
+click_submit_button()
