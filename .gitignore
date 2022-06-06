@@ -3,3 +3,4 @@ lsc_testfile.py
 items.csv
 frontend
 .DS_Store
+chromedriver
