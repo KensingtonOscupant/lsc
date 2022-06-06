@@ -1003,9 +1003,9 @@ for event in lsi_num_current_events:
         print(speaker)
         speaker_db = speaker.replace("und", "and")
         
-        date_day = tree3.xpath('//span[@class=\'cal_day\']/text()')[0]
-        date_month = tree3.xpath('//span[@class=\'cal_month\']/text()')[0]
-        date_year = tree3.xpath('//span[@class=\'cal_year\']/text()')[0]
+        date_day = tree3.xpath('//span[@class=\'cal_day\']/text()')[event-1]
+        date_month = tree3.xpath('//span[@class=\'cal_month\']/text()')[event-1]
+        date_year = tree3.xpath('//span[@class=\'cal_year\']/text()')[event-1]
         print(date_day, date_month, date_year)
         
         month1 = convert_month(date_month)
