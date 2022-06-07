@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
+from webdriver_manager.chrome import ChromeDriverManager
 
 # get environment variables (need to be set on the server or function that is used)
 db_host = os.environ.get('DB_HOST')
@@ -28,8 +29,10 @@ cms_pass = os.environ.get('CMS_PASS')
 # driver = webdriver.Chrome(executable_path='/home/ubuntu/lsc/chromedriver', chrome_options=chrome_options,
 #   service_args=['--verbose', '--log-path=/tmp/chromedriver.log'])
 
-s=Service(r"/Users/gisbertgurke/Desktop/chromedriver")
-driver = webdriver.Chrome(service=s)
+# s=Service(r"/Users/gisbertgurke/Desktop/chromedriver")
+# driver = webdriver.Chrome(service=s)
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 driver.implicitly_wait(20)
 
 # connect to db
@@ -214,3 +217,5 @@ def click_submit_button():
     except TimeoutException:
         print("Loading submit button took too much time.")
 click_submit_button()
+
+# %%
