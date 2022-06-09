@@ -218,4 +218,35 @@ def click_submit_button():
         print("Loading submit button took too much time.")
 click_submit_button()
 
+driver.switch_to.window(window_1)
+
+#driver.switch_to.parent_frame()
+
+# click okay button
+
+def click_okay_button():
+    try:
+        okay_button = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//input[@class='submit npsLogic_submit_userInput.okButton_npsLogic']")))
+        print("okay button detected")
+        okay_button.click()
+        print("okay button clicked!")
+    except TimeoutException:
+        print("Loading okay button took too much time.")
+click_okay_button()
+
+click_okay_button()
+
+# log out of CMS
+
+def log_out_of_cms():
+    try:
+        log_out_button = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//img[@title='Von Fiona abmelden']")))
+        print("log out button detected")
+        log_out_button.click()
+        print("log out button clicked!")
+    except TimeoutException:
+        print("Loading log out button took too much time.")
+
+driver.switch_to.window(window_0)
+log_out_of_cms()
 # %%
