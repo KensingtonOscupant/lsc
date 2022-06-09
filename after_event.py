@@ -22,9 +22,9 @@ cms_pass = os.environ.get('CMS_PASS')
 
 # set up webdriver
 
-# chrome_options = webdriver.ChromeOptions()
-# chrome_options.add_argument('--headless')
-# chrome_options.add_argument('--no-sandbox')
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
 
 # driver = webdriver.Chrome(executable_path='/home/ubuntu/lsc/chromedriver', chrome_options=chrome_options,
 #   service_args=['--verbose', '--log-path=/tmp/chromedriver.log'])
@@ -32,7 +32,7 @@ cms_pass = os.environ.get('CMS_PASS')
 # s=Service(r"/Users/gisbertgurke/Desktop/chromedriver")
 # driver = webdriver.Chrome(service=s)
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+driver = webdriver.Chrome(chrome_options=chrome_options, service=Service(ChromeDriverManager().install()))
 driver.implicitly_wait(20)
 
 # connect to db
