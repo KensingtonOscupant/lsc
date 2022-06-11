@@ -43,6 +43,14 @@ conn = pymysql.connect(host=db_host,
 c = conn.cursor()
 c.execute('''USE testdatabase''')
 
+# check for MySQL database changes (this is just a draft)
+
+# def DatabaseChanges():
+#     most_recent_db_event = c.execute(SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;)
+
+#     if most_recent_db_event > datetime.now (?) – 60min (?):
+#         run the script […]
+
 # get HTML block from db
 c.execute('''SELECT html_insert FROM upcoming_events WHERE id > 0''')
 html_insert = c.fetchall()
@@ -249,4 +257,6 @@ def log_out_of_cms():
 
 driver.switch_to.window(window_0)
 log_out_of_cms()
+
+# send log info to streamlit once I have built the dashboard
 # %%
