@@ -258,5 +258,7 @@ def log_out_of_cms():
 driver.switch_to.window(window_0)
 log_out_of_cms()
 
+driver.quit()
 # send log info to streamlit once I have built the dashboard
+
 # %%
