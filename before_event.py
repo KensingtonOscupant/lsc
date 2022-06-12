@@ -206,6 +206,14 @@ lsi_count_past_events = round(tree4.xpath("count(//article)"))
 lsi_num_current_events = list(range(1, lsi_count_current_events))
 lsi_num_past_events = list(range(1, lsi_count_past_events))
 
+# email links to accept page for LSC events
+
+def generateAcceptLink(upcoming_id):
+    return "http://ec2-52-86-125-236.compute-1.amazonaws.com:8000/polls/" + str(upcoming_id) + "/accept/"
+
+def generatedenyLink(upcoming_id):
+    return "http://ec2-52-86-125-236.compute-1.amazonaws.com:8000/polls/" + str(upcoming_id) + "/deny/"
+
 #sets up check for couting how many of the relevant tables exist
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'upcoming_events' ''')
 table1 = c.fetchall()[0][0]
@@ -626,7 +634,7 @@ for event in num_current_events:
                                     <p>Seminar with <strong>%s</strong> %s</p>
                                     <p>Hosted by FUELS</p>
                                     </blockquote>
-                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
+                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
                             Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
                             Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
                             informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
@@ -646,7 +654,7 @@ for event in num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker, url, header, date, address, speaker, uni)
+                    ''' % (name, speaker, url, header, date, address, speaker, uni, generateAcceptLink(current_id))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
