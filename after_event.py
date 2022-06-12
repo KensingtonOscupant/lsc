@@ -55,9 +55,9 @@ c.execute('''USE testdatabase''')
 
 newest_timestamp = c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
 
-# check if newest timestamp is older than one minute
+# check if newest timestamp is older than two minutes
 
-if newest_timestamp > time.time() - 60:
+if newest_timestamp > time.time() - 120:
 
     # select all ids from lsc_events table
 
