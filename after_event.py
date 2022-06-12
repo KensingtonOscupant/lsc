@@ -52,7 +52,7 @@ c.execute('''USE testdatabase''')
 #         run the script […]
 
 # get HTML block from db
-c.execute('''SELECT html_insert FROM lsc_events WHERE id > 0''')
+c.execute('''SELECT html_insert FROM upcoming_events WHERE id > 0''')
 html_insert = c.fetchall()
 
 # add some HTML blocks together as a test
