@@ -899,7 +899,7 @@ for event in rik_num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id), generateAcceptLink(current_id))
+                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id[0]), generateAcceptLink(current_id[0]))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
@@ -1164,7 +1164,7 @@ for event in lsi_num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id), generateAcceptLink(current_id))
+                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id[0]), generateAcceptLink(current_id[0]))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
