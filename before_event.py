@@ -211,7 +211,7 @@ lsi_num_past_events = list(range(1, lsi_count_past_events))
 def generateAcceptLink(upcoming_id):
     return "http://ec2-52-86-125-236.compute-1.amazonaws.com:8000/polls/" + str(upcoming_id) + "/accept/"
 
-def generatedenyLink(upcoming_id):
+def generateDenyLink(upcoming_id):
     return "http://ec2-52-86-125-236.compute-1.amazonaws.com:8000/polls/" + str(upcoming_id) + "/deny/"
 
 #sets up check for couting how many of the relevant tables exist
@@ -357,6 +357,13 @@ elif project_tables < 4 and project_tables >= 0:
                 speaker = oxfordcomma(speaker_names)
                 print(speaker)  
 
+            # get current id of event from upcoming_events table
+
+            def get_id(event):
+                c.execute('''SELECT id FROM upcoming_events WHERE html_insert = %s''', (event,))
+                return c.fetchone()[0]
+
+            # sends the review email to the reviewer of the institution
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
                 server.login(sender_email, password)
@@ -399,10 +406,7 @@ elif project_tables < 4 and project_tables >= 0:
                                 weiter auf der Website führen möchten (z. B. weil die Veranstaltung veraltet ist).
                                 Soll ich die Meldung beibehalten, würde ich sie in folgender Form auf der Website aufführen:<br>
                                 %s 
-                                Möchten Sie die Meldung in dieser Form annehmen, klicken Sie bitte hier. Sollten Sie die 
-                                Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber hier
-                                informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert 
-                                und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme
+                                Sollten die Meldung entfernt werden, klicken Sie bitte <a href="%s">hier</a>. Sollten anderweitige Probleme
                                 bestehen, helfe ich immer gerne.<br>
                                 <br>
                                 <br>
@@ -418,7 +422,7 @@ elif project_tables < 4 and project_tables >= 0:
                             </p>
                             </body>
                         </html>
-                        ''' % (name, speaker, event)
+                        ''' % (name, speaker, event, generateDenyLink(get_id(event)))
                         
                         message = MIMEMultipart("alternative")
                         message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
