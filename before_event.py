@@ -279,6 +279,7 @@ elif project_tables < 4 and project_tables >= 0:
     # creates LSC events table
     c.execute('''CREATE TABLE lsc_events(
                 id INT,
+                timestamp INT(11),
                 CONSTRAINT fk__lsc_events__upcoming_events
                     FOREIGN KEY (id)
                     REFERENCES upcoming_events(id)
