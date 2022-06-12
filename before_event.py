@@ -654,7 +654,7 @@ for event in num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker, url, header, date, address, speaker, uni, generateAcceptLink(current_id))
+                    ''' % (name, speaker, url, header, date, address, speaker, uni, generateAcceptLink(current_id[0]))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
