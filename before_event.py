@@ -639,7 +639,7 @@ for event in num_current_events:
                                     <p>Hosted by FUELS</p>
                                     </blockquote>
                             Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
-                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte <a href="%s">hier</a>. Sollten Sie die 
                             Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
                             informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
                             und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
@@ -658,7 +658,7 @@ for event in num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker, url, header, date, address, speaker, uni, generateAcceptLink(current_id[0]))
+                    ''' % (name, speaker, url, header, date, address, speaker, uni, generateDenyLink(current_id[0]), generateAcceptLink(current_id[0]))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
@@ -879,8 +879,8 @@ for event in rik_num_current_events:
                                     <p>%s </p>
                                     <p>Hosted by Recht im Kontext</p>
                                     </blockquote>
-                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
-                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
+                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte <a href="%s">hier</a>. Sollten Sie die 
                             Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
                             informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
                             und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
@@ -899,7 +899,7 @@ for event in rik_num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2)
+                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id), generateAcceptLink(current_id))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
@@ -1144,8 +1144,8 @@ for event in lsi_num_current_events:
                                     <p>%s </p>
                                     <p>Hosted by LSI</p>
                                     </blockquote>
-                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte hier. 
-                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte hier. Sollten Sie die 
+                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
+                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte <a href="%s">hier</a>. Sollten Sie die 
                             Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
                             informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
                             und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
@@ -1164,7 +1164,7 @@ for event in lsi_num_current_events:
                         </p>
                         </body>
                     </html>
-                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2)
+                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id), generateAcceptLink(current_id))
                     
                     message = MIMEMultipart("alternative")
                     message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
