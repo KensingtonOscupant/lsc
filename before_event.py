@@ -224,7 +224,7 @@ table3 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'event_header';''')
 table4 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 -1
+project_tables = table1 + table2 + table3 + table4
 
 # acts accordingly.
 if project_tables == 4:
