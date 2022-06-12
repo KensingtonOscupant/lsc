@@ -51,8 +51,21 @@ c.execute('''USE testdatabase''')
 #     if most_recent_db_event > datetime.now (?) – 60min (?):
 #         run the script […]
 
+# select all ids from lsc_events table
+
+c.execute('''SELECT id FROM lsc_events WHERE id > 0''')
+lsc_ids = c.fetchall()
+
+#convert to one big integer tuple
+
+def convert_to_single_tuple(lsc_ids_int):
+    lsc_ids_int = []
+    for i in lsc_ids:
+        lsc_ids_int.append(int(i[0]))
+    return tuple(lsc_ids_int)
+
 # get HTML block from db
-c.execute('''SELECT html_insert FROM upcoming_events WHERE id > 0''')
+c.execute('''SELECT html_insert FROM upcoming_events WHERE id in %s''', (convert_to_single_tuple(lsc_ids),))
 html_insert = c.fetchall()
 
 # add some HTML blocks together as a test
