@@ -58,7 +58,7 @@ newest_timestamp = c.fetchall()[0][0]
 
 # check if newest timestamp is older than two minutes
 
-if newest_timestamp > time.time() - 500:
+if newest_timestamp > time.time() - 300:
 
     # select all ids from lsc_events table
 
@@ -279,6 +279,25 @@ if newest_timestamp > time.time() - 500:
         except TimeoutException:
             print("Loading publish button took too much time.")
     publish_changes()
+
+    # save new window handle and switch to it
+
+    window_1 = driver.window_handles[1]
+    driver.switch_to.window(window_1)
+    print("switched to window 1!")
+
+    # click okay publish button
+    def click_okay_publish_button():
+        try:
+            okay_publish_button = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//input[@class='submit npsLogic_submit_userInput.okButton_npsLogic']")))
+            print("okay publish button detected")
+            okay_publish_button.click()
+            print("okay publish button clicked!")
+        except TimeoutException:
+            print("Loading okay publish button took too much time.")
+    click_okay_publish_button()
+
+    driver.switch_to.window(window_0)
 
     # log out of CMS
 
