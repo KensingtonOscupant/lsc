@@ -53,7 +53,8 @@ c.execute('''USE testdatabase''')
 
 # get newest timestamp from lsc_events table
 
-newest_timestamp = c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
+c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
+newest_timestamp = c.fetchall()[0][0]
 
 # check if newest timestamp is older than two minutes
 
