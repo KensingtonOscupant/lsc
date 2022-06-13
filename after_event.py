@@ -268,11 +268,13 @@ if newest_timestamp > time.time() - 500:
 
     # publish
 
+    driver.switch_to.window(window_0)
+
     def publish_changes():
         try:
-            log_out_button = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//img[@title='Freigeben']")))
+            publish_button = WebDriverWait(driver, delay).until(EC.element_to_be_clickable((By.XPATH, "//img[@title='Freigeben']")))
             print("publish button detected")
-            log_out_button.click()
+            publish_button.click()
             print("publish button clicked!")
         except TimeoutException:
             print("Loading publish button took too much time.")
@@ -289,7 +291,6 @@ if newest_timestamp > time.time() - 500:
         except TimeoutException:
             print("Loading log out button took too much time.")
 
-    driver.switch_to.window(window_0)
     log_out_of_cms()
 
     driver.quit()
