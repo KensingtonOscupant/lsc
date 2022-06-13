@@ -58,7 +58,7 @@ newest_timestamp = c.fetchall()[0][0]
 
 # check if newest timestamp is older than two minutes
 
-if newest_timestamp > time.time() - 120:
+if newest_timestamp > time.time() - 500:
 
     # select all ids from lsc_events table
 
