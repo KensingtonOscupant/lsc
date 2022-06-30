@@ -226,7 +226,7 @@ table4 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'num_lsc_events';''')
 table5 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 + table5
+project_tables = table1 + table2 + table3 + table4 + table5 -1
 
 # acts accordingly.
 if project_tables == 5:
@@ -571,6 +571,10 @@ for event in num_current_events:
         
         # checks address
         address = tree.xpath('normalize-space(//p[@class=\'box-event-doc-location\'])')
+
+        # prepare date for parsing (note: I could have done this above, but I didn't want to rewrite the code)
+        date = date_tuple[0].replace(",", "")
+        date = date.replace(" |", ",")
 
         # creates HTML block that will potentially be added to LSC later on
         html_block = '''<hr /><h3><a href="%s">%s</a></h3>
