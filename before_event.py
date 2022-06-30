@@ -209,10 +209,10 @@ lsi_num_past_events = list(range(1, lsi_count_past_events))
 # email links to accept page for LSC events
 
 def generateAcceptLink(upcoming_id):
-    return "http://ec2-52-86-125-236.compute-1.amazonaws.com:8000/polls/" + str(upcoming_id) + "/accept/"
+    return "https://lscwebservice.com/polls/" + str(upcoming_id) + "/accept/"
 
 def generateDenyLink(upcoming_id):
-    return "http://ec2-52-86-125-236.compute-1.amazonaws.com:8000/polls/" + str(upcoming_id) + "/deny/"
+    return "https://lscwebservice.com/polls/" + str(upcoming_id) + "/deny/"
 
 #sets up check for couting how many of the relevant tables exist
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'upcoming_events' ''')
