@@ -223,13 +223,15 @@ c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = '
 table3 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'event_header';''')
 table4 = c.fetchall()[0][0]
+c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'num_lsc_events';''')
+table5 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4
+project_tables = table1 + table2 + table3 + table4 + table5
 
 # acts accordingly.
-if project_tables == 4:
+if project_tables == 5:
     print("All tables found!")
-elif project_tables < 4 and project_tables >= 0:
+elif project_tables < 5 and project_tables >= 0:
     print("At least one table does not exist. All tables will be recreated.")
     
     # deletes tables if they exist (respectively)
@@ -238,6 +240,7 @@ elif project_tables < 4 and project_tables >= 0:
     c.execute("DROP TABLE IF EXISTS prospective_lsc_events;")
     c.execute("DROP TABLE IF EXISTS lsc_events;")
     c.execute("DROP TABLE IF EXISTS event_header;")
+    c.execute("DROP TABLE IF EXISTS num_lsc_events;")
     
     # it would be more efficient to do execute the following queries in one executemany() statement,
     # but that would make it impossible to create debug messages in between which I think is more important
@@ -293,7 +296,17 @@ elif project_tables < 4 and project_tables >= 0:
                     REFERENCES upcoming_events(id)
                     ON DELETE CASCADE);''')
     print("created LSC events table")
-        
+
+    # creates table to keep track of number of LSC events
+
+    c.execute('''CREATE TABLE num_lsc_events(
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                num_events INT(11));''')
+    
+    # add one entry with 0 to num_lsc_events table
+
+    c.execute('''INSERT INTO num_lsc_events (num_events) VALUES (0);''')
+
     # stores the HTML blocks of the different events
     lsc_events = list()
     
@@ -462,7 +475,7 @@ elif project_tables < 4 and project_tables >= 0:
              WHERE id = OLD.id''')
      
 else:
-    print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 4")
+    print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 5")
 
 
 # main part of the program: monitors changes to events on the websites 

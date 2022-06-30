@@ -56,9 +56,23 @@ c.execute('''USE testdatabase''')
 c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
 newest_timestamp = c.fetchall()[0][0]
 
-# check if newest timestamp is older than two minutes
+# add number of events in lsc_events table to num_lsc_events
 
-if newest_timestamp > time.time() - 300:
+c.execute('''SELECT COUNT(*) FROM lsc_events;''')
+count_lsc_events = c.fetchall()[0][0]
+c.execute('''INSERT INTO num_lsc_events (num_events) VALUES (%s);''', (count_lsc_events,))
+
+# get the most recent and second most recent entry in num_lsc_events
+
+c.execute('''SELECT * FROM num_lsc_events ORDER BY id DESC LIMIT 2;''')
+latest_entry = c.fetchall()[0][1]
+
+c.execute('''SELECT * FROM num_lsc_events ORDER BY id DESC LIMIT 2;''')
+second_latest_entry = c.fetchall()[1][1]
+
+# check if newest timestamp is older than two minutes or if the number of events in lsc_events table has changed
+
+if newest_timestamp > time.time() - 300 or latest_entry < second_latest_entry:
 
     # select all ids from lsc_events table
 
