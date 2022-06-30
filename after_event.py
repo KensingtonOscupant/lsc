@@ -53,15 +53,21 @@ c.execute('''USE testdatabase''')
 
 # get newest timestamp from lsc_events table
 
-c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
-newest_timestamp = c.fetchall()[0][0]
+try:
+    c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
+    newest_timestamp = c.fetchall()[0][0]
+
+# this catches the situation where the table is empty
+except IndexError:
+    newest_timestamp = 0
+    null_exception = True
 
 # add number of events in lsc_events table to num_lsc_events
 
 c.execute('''SELECT COUNT(*) FROM lsc_events;''')
 count_lsc_events = c.fetchall()[0][0]
 c.execute('''INSERT INTO num_lsc_events (num_events) VALUES (%s);''', (count_lsc_events,))
-
+conn.commit()
 # get the most recent and second most recent entry in num_lsc_events
 
 c.execute('''SELECT * FROM num_lsc_events ORDER BY id DESC LIMIT 2;''')
@@ -87,9 +93,12 @@ if newest_timestamp > time.time() - 300 or latest_entry < second_latest_entry:
             lsc_ids_int.append(int(i[0]))
         return tuple(lsc_ids_int)
 
-    # get HTML block from db
-    c.execute('''SELECT html_insert FROM upcoming_events WHERE id in %s ORDER BY date ASC''', (convert_to_single_tuple(lsc_ids),))
-    html_insert = c.fetchall()
+    if null_exception == True:
+        html_insert = []
+    else:
+        # get HTML block from db
+            c.execute('''SELECT html_insert FROM upcoming_events WHERE id in %s ORDER BY date ASC''', (convert_to_single_tuple(lsc_ids),))
+            html_insert = c.fetchall()
 
     # add some HTML blocks together as a test
     full_html = ["<p><a href=\"Past-Events/index.html\">Past events</a></p>"]
