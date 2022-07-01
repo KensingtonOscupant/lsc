@@ -52,12 +52,14 @@ c.execute('''USE testdatabase''')
 #         run the script […]
 
 # get newest timestamp from lsc_events table
+null_exception = False
 
 try:
     c.execute('''SELECT timestamp FROM lsc_events ORDER BY timestamp DESC LIMIT 1;''')
     newest_timestamp = c.fetchall()[0][0]
 
 # this catches the situation where the table is empty
+
 except IndexError:
     newest_timestamp = 0
     null_exception = True
