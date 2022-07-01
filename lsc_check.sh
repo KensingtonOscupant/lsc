@@ -1,4 +1,6 @@
 #!/bin/bash
+source .bashrc/bin/activate
+
 cd /home/ubuntu/lsc/lsc_venv
 source /home/ubuntu/lsc/lsc_venv/bin/activate
 
