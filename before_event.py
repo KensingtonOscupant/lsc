@@ -222,6 +222,14 @@ def detected_event(host_name, event_title_for_dashboard):
     c.execute("INSERT INTO dashboard (Host, Title, Operation, PerformedAt) VALUES (%s, %s, %s, NOW())", (host_name, event_title_for_dashboard, operation_performed, ))
     conn.commit()
 
+# I didn't save the titles for the LSC events separately, so this function gets them for the dashboard
+def extract_string_between_tags(html):
+    start_tag = "\">"
+    end_tag = "</a>"
+    start_index = html.find(start_tag)
+    end_index = html.find(end_tag)
+    return html[start_index + len(start_tag):end_index]
+
 #sets up check for couting how many of the relevant tables exist
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'upcoming_events' ''')
 table1 = c.fetchall()[0][0]
@@ -236,7 +244,7 @@ table5 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'dashboard';''')
 table6 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 + table5 + table6
+project_tables = table1 + table2 + table3 + table4 + table5 + table6 -1
 
 # acts accordingly.
 if project_tables == 6:
@@ -351,7 +359,7 @@ elif project_tables < 6 and project_tables >= 0:
         else:
             print("added one entry")
             # insert into db
-            detected_event("Legacy event on LSC page", "-")
+            detected_event("Legacy event on LSC page", extract_string_between_tags(event))
             date_list = tree2.xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
             date_split = date_list[0].split(",")
             lsc_event_date_unformatted = str(date_split[0])
