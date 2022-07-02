@@ -225,13 +225,15 @@ c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = '
 table4 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'num_lsc_events';''')
 table5 = c.fetchall()[0][0]
+c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'dashboard';''')
+table6 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 + table5
+project_tables = table1 + table2 + table3 + table4 + table5 + table6 -1
 
 # acts accordingly.
-if project_tables == 5:
+if project_tables == 6:
     print("All tables found!")
-elif project_tables < 5 and project_tables >= 0:
+elif project_tables < 6 and project_tables >= 0:
     print("At least one table does not exist. All tables will be recreated.")
     
     # deletes tables if they exist (respectively)
@@ -302,10 +304,21 @@ elif project_tables < 5 and project_tables >= 0:
     c.execute('''CREATE TABLE num_lsc_events(
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 num_events INT(11));''')
+    print("created num_lsc_events table")
     
     # add one entry with 0 to num_lsc_events table
 
     c.execute('''INSERT INTO num_lsc_events (num_events) VALUES (0);''')
+
+    # creates dashboard table to show database transactions on website
+
+    c.execute('''CREATE TABLE dashboard(
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                Host VARCHAR(255),
+                Title TEXT,
+                Operation VARCHAR(255),
+                PerformedAt DATETIME);''')
+    print("created dashboard table")
 
     # stores the HTML blocks of the different events
     lsc_events = list()
