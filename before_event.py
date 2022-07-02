@@ -209,10 +209,10 @@ lsi_num_past_events = list(range(1, lsi_count_past_events))
 # email links to accept page for LSC events
 
 def generateAcceptLink(upcoming_id):
-    return "https://lscwebservice.com/polls/" + str(upcoming_id) + "/accept/"
+    return "https://lscwebservice.com/" + str(upcoming_id) + "/accept/"
 
 def generateDenyLink(upcoming_id):
-    return "https://lscwebservice.com/polls/" + str(upcoming_id) + "/deny/"
+    return "https://lscwebservice.com/" + str(upcoming_id) + "/deny/"
 
 # dashboard functions
 # event detected
