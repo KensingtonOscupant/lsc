@@ -214,6 +214,14 @@ def generateAcceptLink(upcoming_id):
 def generateDenyLink(upcoming_id):
     return "https://lscwebservice.com/polls/" + str(upcoming_id) + "/deny/"
 
+# dashboard functions
+# event detected
+
+def detected_event(host_name, event_title_for_dashboard):
+    operation_performed = "Event detected"
+    c.execute("INSERT INTO dashboard (Host, Title, Operation, PerformedAt) VALUES (%s, %s, %s, NOW())", (host_name, event_title_for_dashboard, operation_performed, ))
+    conn.commit()
+
 #sets up check for couting how many of the relevant tables exist
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'upcoming_events' ''')
 table1 = c.fetchall()[0][0]
@@ -228,7 +236,7 @@ table5 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'dashboard';''')
 table6 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 + table5 + table6
+project_tables = table1 + table2 + table3 + table4 + table5 + table6 -1
 
 # acts accordingly.
 if project_tables == 6:
@@ -243,6 +251,7 @@ elif project_tables < 6 and project_tables >= 0:
     c.execute("DROP TABLE IF EXISTS lsc_events;")
     c.execute("DROP TABLE IF EXISTS event_header;")
     c.execute("DROP TABLE IF EXISTS num_lsc_events;")
+    c.execute("DROP TABLE IF EXISTS dashboard;")
     
     # it would be more efficient to do execute the following queries in one executemany() statement,
     # but that would make it impossible to create debug messages in between which I think is more important
@@ -342,6 +351,7 @@ elif project_tables < 6 and project_tables >= 0:
         else:
             print("added one entry")
             # insert into db
+            detected_event("Legacy event on LSC page", "-")
             date_list = tree2.xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
             date_split = date_list[0].split(",")
             lsc_event_date_unformatted = str(date_split[0])
@@ -507,6 +517,7 @@ for event in num_current_events:
     else:
         print("added one entry")
         header = new_event[0] # this will be one of the components for the HTML of the lsc event later
+        detected_event("FUELS", header)
         print(header)
         #set url to specific events page to retrieve details
         event_link = tree.xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/@href')
@@ -760,6 +771,7 @@ for event in rik_num_current_events:
         print("added one entry")
         header = new_event[0] # this will be one of the components for the HTML of the lsc event later
         print(header)
+        detected_event("Recht im Kontext", header)
         #set url to specific events page to retrieve details
         url_pt1 = "https://www.rechtimkontext.de/"
         url_pt2 = str(tree6.xpath('//*[@id=\"c51\"]/div/div/a[' + str(event) + ']/@href')[0])
@@ -994,6 +1006,7 @@ for event in lsi_num_current_events:
     else:
         print("added one entry")
         header = new_event[0] # this will be one of the components for the HTML of the lsc event later
+        detected_event("LSI", header)
         print(header)
         #set url to specific events page to retrieve details
         event_link = tree3.xpath('//article[' + str(event) + ']/div[2]/h2/a/@href')
