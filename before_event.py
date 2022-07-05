@@ -18,27 +18,6 @@ import jellyfish
 from spacy.language import Language
 from spacy_langdetect import LanguageDetector
 import certifi
-import boto3
-from selenium import webdriver
-from tempfile import mkdtemp
-
-# added from docker setup
-options = webdriver.ChromeOptions()
-options.binary_location = '/opt/chrome/chrome'
-options.add_argument('--headless')
-options.add_argument('--no-sandbox')
-options.add_argument("--disable-gpu")
-options.add_argument("--window-size=1280x1696")
-options.add_argument("--single-process")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--disable-dev-tools")
-options.add_argument("--no-zygote")
-options.add_argument(f"--user-data-dir={mkdtemp()}")
-options.add_argument(f"--data-path={mkdtemp()}")
-options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-options.add_argument("--remote-debugging-port=9222")
-""" chrome = webdriver.Chrome("/opt/chromedriver",
-                            options=options) """
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -53,16 +32,6 @@ conn = pymysql.connect(host=db_host,
 c = conn.cursor()
 
 c.execute('''USE testdatabase''')
-
-# S3 setup
-key = 'items.csv'
-bucket = 'lsc-mailbucket'
-s3_resource = boto3.resource('s3')
-s3_object = s3_resource.Object(bucket, key)
-data = s3_object.get()['Body'].read().decode('utf-8').splitlines()
-    
-lines = csv.reader(data)
-headers = next(lines)
 
 # just for debugging, remove later
 #c.execute("DELETE FROM upcoming_events WHERE id > 0")
@@ -509,9 +478,7 @@ else:
     print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 5")
 
 
-# main part of the program: monitors changes to events on the websites 
-
-lines = csv.reader(data) # these two lines
+# main part of the program: monitors changes to events on the websites
 
 # FUELS
 for event in num_current_events:
@@ -759,8 +726,6 @@ for event in num_current_events:
 
 # RiK
 
-lines = csv.reader(data) # these two lines
-
 # gets list with no of titles of events (i bet there's a more efficient way to do this)
 rik_count_num_current_events = round(tree6.xpath("count(//*[@id=\"c51\"]/div/div/a)"))
 rik_count_num_past_events = round(tree6.xpath("count(//*[@id=\"c111\"]/div/div/a)"))
@@ -1000,8 +965,6 @@ for event in rik_num_current_events:
     tree = html.fromstring(r.content, parser=parser)
     
 # LSI
-
-lines = csv.reader(data) # these two lines
 
 for event in lsi_num_current_events:
     # checks if event is already in database
