@@ -4,3 +4,4 @@ items.csv
 frontend
 .DS_Store
 chromedriver
+__pycache__

@@ -18,6 +18,7 @@ import jellyfish
 from spacy.language import Language
 from spacy_langdetect import LanguageDetector
 import certifi
+from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -33,47 +34,8 @@ c = conn.cursor()
 
 c.execute('''USE testdatabase''')
 
-# just for debugging, remove later
-#c.execute("DELETE FROM upcoming_events WHERE id > 0")
-#c.execute('''UPDATE prospective_lsc_events 
-#          SET html_insert = "None", 
-#          active_slot = 0 WHERE id > 0''')
-
-# set up HTTP requests and XML processing
-# fuels:
+# this is just a remnant for where I have not refactored the code yet, will be removed soon
 parser = html.HTMLParser(encoding="utf-8")
-url = "https://www.jura.fu-berlin.de/en/forschung/fuels/Upcoming/index.html"
-r = requests.get(url)
-tree = html.fromstring(r.content, parser=parser)
-
-# LSC:
-url2 = "https://www.laws-of-social-cohesion.de/Events/index.html"
-t = requests.get(url2)
-tree2 = html.fromstring(t.content, parser=parser)
-my_html = t.text
-
-# rik:
-# current events
-parser = html.HTMLParser(encoding="utf-8")
-url6 = "https://www.rechtimkontext.de/veranstaltungen/"
-r6 = requests.get(url6)
-tree6 = html.fromstring(r6.content, parser=parser)
-
-#past events # is this necessary if they are both on the same page?
-url4 = "https://www.rewi.hu-berlin.de/de/lf/oe/lsi/event_listing?mode=past"
-r4 = requests.get(url4)
-tree4 = html.fromstring(r4.content, parser=parser)
-
-# lsi:
-# current events
-url3 = "https://www.rewi.hu-berlin.de/de/lf/oe/lsi/event_listing?mode=future"
-r3 = requests.get(url3)
-tree3 = html.fromstring(r3.content, parser=parser)
-
-#past events on LSI, important for moving to archive
-url4 = "https://www.rewi.hu-berlin.de/de/lf/oe/lsi/event_listing?mode=past"
-r4 = requests.get(url4)
-tree4 = html.fromstring(r4.content, parser=parser)
 
 # set up SMTP and SSL requirements for email
 port = 465
@@ -98,7 +60,7 @@ def oxfordcomma(listed):
 # gets number of current or past events
 def count_events_fuelsuntr(current_or_past):
     xpath_count = "count(//*[@id=\"" + current_or_past + "_events\"]/div)"
-    count = round(tree.xpath(xpath_count))
+    count = round(fuels_html.tree().xpath(xpath_count))
     return count
 
 # this definitely needs to be optimised
@@ -170,8 +132,8 @@ num_current_events = list(range(1, count_events_fuelsuntr("current")+1))
 num_past_events = list(range(1, count_events_fuelsuntr("past")+1))
 
 # gets LSI list with no. of titles of events
-lsi_count_current_events = round(tree3.xpath("count(//article)"))
-lsi_count_past_events = round(tree4.xpath("count(//article)"))
+lsi_count_current_events = round(lsi_current_events_html.tree().xpath("count(//article)"))
+lsi_count_past_events = round(lsi_past_events_html.tree().xpath("count(//article)"))
 lsi_num_current_events = list(range(1, lsi_count_current_events))
 lsi_num_past_events = list(range(1, lsi_count_past_events))
 
@@ -213,7 +175,7 @@ table5 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'dashboard';''')
 table6 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 + table5 + table6
+project_tables = table1 + table2 + table3 + table4 + table5 + table6 -1
 
 # acts accordingly.
 if project_tables == 6:
@@ -228,7 +190,7 @@ elif project_tables < 6 and project_tables >= 0:
     c.execute("DROP TABLE IF EXISTS lsc_events;")
     c.execute("DROP TABLE IF EXISTS event_header;")
     c.execute("DROP TABLE IF EXISTS num_lsc_events;")
-    c.execute("DROP TABLE IF EXISTS dashboard;")
+    #c.execute("DROP TABLE IF EXISTS dashboard;")
     
     # it would be more efficient to do execute the following queries in one executemany() statement,
     # but that would make it impossible to create debug messages in between which I think is more important
@@ -298,7 +260,7 @@ elif project_tables < 6 and project_tables >= 0:
 
     # creates dashboard table to show database transactions on website
 
-    c.execute('''CREATE TABLE dashboard(
+    c.execute('''CREATE TABLE IF NOT EXISTS dashboard(
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 Host VARCHAR(255),
                 Title TEXT,
@@ -311,7 +273,7 @@ elif project_tables < 6 and project_tables >= 0:
     
     # the following section runs the initial check on the LSC events that already exist
     # parses HTML to create these blocks and insert them into the list lsc_events
-    soup = BeautifulSoup(my_html, 'html.parser')
+    soup = BeautifulSoup(lsc_html.fulltext(), 'html.parser')
     data = soup.find_all("div", {"class" : "editor-content hyphens"})
     data_string = str(data[0])
     soup = BeautifulSoup(''.join(data_string), 'html.parser')
@@ -329,7 +291,7 @@ elif project_tables < 6 and project_tables >= 0:
             print("added one entry")
             # insert into db
             detected_event("Legacy event on LSC page", extract_string_between_tags(event))
-            date_list = tree2.xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
+            date_list = lsc_html.tree().xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
             date_split = date_list[0].split(",")
             lsc_event_date_unformatted = str(date_split[0])
             lsc_institution = "LSC"
@@ -483,7 +445,7 @@ else:
 # FUELS
 for event in num_current_events:
     # checks if event is already in database
-    new_event = tree.xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/text()[1]')
+    new_event = fuels_html.tree().xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/text()[1]')
     c.execute('''SELECT 1 FROM event_header WHERE name = %s''', (new_event,))
     if c.fetchone():
         print("Found FUELS event!")
@@ -495,7 +457,7 @@ for event in num_current_events:
         detected_event("FUELS", header)
         print(header)
         #set url to specific events page to retrieve details
-        event_link = tree.xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/@href')
+        event_link = fuels_html.tree().xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/@href')
         url = "https://www.jura.fu-berlin.de/" + event_link[0]
         r = requests.get(url)
         tree = html.fromstring(r.content, parser=parser)
@@ -717,24 +679,18 @@ for event in num_current_events:
             
         else:
             print("alles im grünen Bereich")
-               
-    # set url back to general events page. This is necessary here because the URL has to be changed back
-    # at the start of the for loop.
-    url = "https://www.jura.fu-berlin.de/en/forschung/fuels/Upcoming/index.html"
-    r = requests.get(url)
-    tree = html.fromstring(r.content, parser=parser)
 
 # RiK
 
 # gets list with no of titles of events (i bet there's a more efficient way to do this)
-rik_count_num_current_events = round(tree6.xpath("count(//*[@id=\"c51\"]/div/div/a)"))
-rik_count_num_past_events = round(tree6.xpath("count(//*[@id=\"c111\"]/div/div/a)"))
+rik_count_num_current_events = round(rik_html.tree().xpath("count(//*[@id=\"c51\"]/div/div/a)"))
+rik_count_num_past_events = round(rik_html.tree().xpath("count(//*[@id=\"c111\"]/div/div/a)"))
 rik_num_current_events = list(range(1, rik_count_num_current_events+1))
 rik_num_past_events = list(range(1, rik_count_num_past_events+1))
     
 for event in rik_num_current_events:
     # checks if event is already in database
-    new_event = tree6.xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/div/div[1]/h4/span/text()')
+    new_event = rik_html.tree().xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/div/div[1]/h4/span/text()')
     c.execute('''SELECT 1 FROM event_header WHERE name = %s''', (new_event,))
     if c.fetchone():
         print("Found RiK event!")
@@ -747,20 +703,20 @@ for event in rik_num_current_events:
         detected_event("Recht im Kontext", header)
         #set url to specific events page to retrieve details
         url_pt1 = "https://www.rechtimkontext.de/"
-        url_pt2 = str(tree6.xpath('//*[@id=\"c51\"]/div/div/a[' + str(event) + ']/@href')[0])
+        url_pt2 = str(rik_html.tree().xpath('//*[@id=\"c51\"]/div/div/a[' + str(event) + ']/@href')[0])
         url = url_pt1 + url_pt2
         url7 = url
         r7 = requests.get(url7)
         tree7 = html.fromstring(r7.content, parser=parser)
         
-        speaker_and_uni_raw1 = tree6.xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/div/div[2]/span/p[1]/text()')
+        speaker_and_uni_raw1 = rik_html.tree().xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/div/div[2]/span/p[1]/text()')
         speaker_and_uni_raw2 = speaker_and_uni_raw1[0]
         speaker_and_uni = speaker_and_uni_raw2[:-1].split(" (")
         speaker = speaker_and_uni[0]
         uni = speaker_and_uni[1]
         
         # checks date
-        date_tuple = tree6.xpath('normalize-space(//*[@id="c51"]/div/div/a[' + str(event) + ']/div/div[1]/h2/span/time/text())')
+        date_tuple = rik_html.tree().xpath('normalize-space(//*[@id="c51"]/div/div/a[' + str(event) + ']/div/div[1]/h2/span/time/text())')
         date_comps = date_tuple.split(" ")
         
         date_day = date_comps[0][:-1]
@@ -957,18 +913,12 @@ for event in rik_num_current_events:
             
         else:
             print("alles im grünen Bereich")
-               
-    # set url back to general events page. This is necessary here because the URL has to be changed back
-    # at the start of the for loop.
-    url = "https://www.jura.fu-berlin.de/en/forschung/fuels/Upcoming/index.html"
-    r = requests.get(url)
-    tree = html.fromstring(r.content, parser=parser)
     
 # LSI
 
 for event in lsi_num_current_events:
     # checks if event is already in database
-    new_event = tree3.xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
+    new_event = lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
     c.execute('''SELECT 1 FROM event_header WHERE name = %s''', (new_event,))
     if c.fetchone():
         print("Found LSI event!")
@@ -980,7 +930,7 @@ for event in lsi_num_current_events:
         detected_event("LSI", header)
         print(header)
         #set url to specific events page to retrieve details
-        event_link = tree3.xpath('//article[' + str(event) + ']/div[2]/h2/a/@href')
+        event_link = lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/@href')
         url = event_link[0]
         r = requests.get(url)
         tree = html.fromstring(r.content, parser=parser)
@@ -1004,7 +954,7 @@ for event in lsi_num_current_events:
         # not there, they are simply left out.
         except IndexError:
             print("no name detected")
-            event_link = tree3.xpath('//article[' + str(event) + ']/div[2]/h2/a/@href')
+            event_link = lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/@href')
             url5 = event_link[0]
             r5 = requests.get(url5)
             tree5 = html.fromstring(r5.content, parser=parser)
@@ -1030,9 +980,9 @@ for event in lsi_num_current_events:
         print(speaker)
         speaker_db = speaker.replace("und", "and")
         
-        date_day = tree3.xpath('//span[@class=\'cal_day\']/text()')[event-1]
-        date_month = tree3.xpath('//span[@class=\'cal_month\']/text()')[event-1]
-        date_year = tree3.xpath('//span[@class=\'cal_year\']/text()')[event-1]
+        date_day = lsi_current_events_html.tree().xpath('//span[@class=\'cal_day\']/text()')[event-1]
+        date_month = lsi_current_events_html.tree().xpath('//span[@class=\'cal_month\']/text()')[event-1]
+        date_year = lsi_current_events_html.tree().xpath('//span[@class=\'cal_year\']/text()')[event-1]
         print(date_day, date_month, date_year)
         
         month1 = convert_month(date_month)
@@ -1061,7 +1011,7 @@ for event in lsi_num_current_events:
             date = convert_month_back(month1) + " " + date_day + " " + date_year + ", " + formatted_start_time + " to " + formatted_end_time + " p.m."
 
         # checks address
-        address_lxml = tree3.xpath('//span[@itemprop="address"]/text()[0]')
+        address_lxml = lsi_current_events_html.tree().xpath('//span[@itemprop="address"]/text()[0]')
         address = str(address_lxml)
         print(address)
         if "Zoom" or "online" or "Link" in address:
@@ -1221,12 +1171,6 @@ for event in lsi_num_current_events:
             
         else:
             print("alles im grünen Bereich")
-               
-    # set url back to general events page. This is necessary here because the URL has to be changed back
-    # at the start of the for loop.
-    url = "https://www.jura.fu-berlin.de/en/forschung/fuels/Upcoming/index.html"
-    r = requests.get(url)
-    tree = html.fromstring(r.content, parser=parser)
     
 # next: check all database entries against past events. If one appears there, it is deleted from the database
 # for extra efficiency. Actually checking past events is not necessary (or smart) to update current events 
@@ -1238,7 +1182,7 @@ for event in lsi_num_current_events:
 # FUELS
 past_events_titles = list()
 for events in num_past_events:
-    past_event = tree.xpath('//*[@id="past_events"]/div[' + str(events) + ']/div[1]/h3/a/text()[1]')
+    past_event = fuels_html.tree().xpath('//*[@id="past_events"]/div[' + str(events) + ']/div[1]/h3/a/text()[1]')
     past_events_titles.append(past_event[0])
 
 # selects all database entries and gets their total number, which does not necessarily 
@@ -1275,7 +1219,7 @@ for event in list_num_db_entries:
 current_fuels_events = list()
 for event in num_current_events:
     # checks if event is already in database
-    new_event = tree.xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/text()[1]')[0]
+    new_event = fuels_html.tree().xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/text()[1]')[0]
     current_fuels_events.append(new_event)
     
 # this section needs to be run again because it might be outdated if events have been
@@ -1308,7 +1252,7 @@ for event in list_num_db_entries:
 
 past_events_titles = list()
 for event in lsi_num_past_events:
-    past_event = tree4.xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
+    past_event = lsi_past_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
     past_events_titles.append(past_event[0])
 
 # selects all database entries and gets their total number, which does not necessarily 
@@ -1345,7 +1289,7 @@ for event in list_num_db_entries:
 current_lsi_events = list()
 for event in lsi_num_current_events:
     # checks if event is already in database
-    new_event = tree3.xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')[0]
+    new_event = lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')[0]
     current_lsi_events.append(new_event)
 print("list I'm searching for : " + str(current_lsi_events))
     
@@ -1379,7 +1323,7 @@ for event in list_num_db_entries:
 
 past_events_titles = list()
 for event in rik_num_past_events:
-    past_event = tree6.xpath('//*[@id="c111"]/div/div/a[' + str(event) + ']/@title')
+    past_event = rik_html.tree().xpath('//*[@id="c111"]/div/div/a[' + str(event) + ']/@title')
     past_event = past_event[0].replace(u'\xa0', u' ')
     past_events_titles.append(past_event)
 
@@ -1417,7 +1361,7 @@ for event in list_num_db_entries:
 current_rik_events = list()
 for event in rik_num_current_events:
     # checks if event is already in database (I think this is a wrong description)
-    new_event = tree6.xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/@title')
+    new_event = rik_html.tree().xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/@title')
     new_event = new_event[0].replace(u'\xa0', u' ')
     current_rik_events.append(new_event)
 print("list I'm searching for : " + str(current_rik_events))
@@ -1458,7 +1402,7 @@ tree2 = html.fromstring(t.content, parser=parser)
 my_html = t.text
 
 xpath_count = "count(//*[@class=\"editor-content hyphens\"]//h3)"
-count = round(tree2.xpath(xpath_count))
+count = round(lsc_html.tree().xpath(xpath_count))
 count_list = list(range(0, count-1))
 
 c.execute('''SELECT html_insert FROM upcoming_events''')
@@ -1470,7 +1414,9 @@ lsc_events = list()
 
 ## creates list of current html blocks on the LSC website, same as above 
 # but current because things might change in between
-soup = BeautifulSoup(my_html, "html.parser")
+# note: I am not sure if the class method will run once more here or take the original value.
+# if the latter should be the case, this won't work anymore.
+soup = BeautifulSoup(lsc_html.fulltext(), "html.parser")
 data = soup.find_all("div", {"class" : "editor-content hyphens"})
 data_string = str(data[0])
 soup = BeautifulSoup(''.join(data_string))
