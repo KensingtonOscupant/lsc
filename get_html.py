@@ -1,6 +1,8 @@
 from lxml import html, etree
 import requests
 
+"""Requests the HTML tree and the HTML as text for the page of the respective institute."""
+
 class InstituteHTML:
 
     my_parser = html.HTMLParser(encoding="utf-8")
