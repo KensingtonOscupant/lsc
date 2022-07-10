@@ -19,6 +19,7 @@ from spacy.language import Language
 from spacy_langdetect import LanguageDetector
 import certifi
 from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
+from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -43,89 +44,21 @@ smtp_server = "smtp.gmail.com"
 sender_email = "lsc.webservice@gmail.com"
 password = email_pass
 
-# set up langdetect in function (necessary)
+# set up langdetect
 def get_lang_detector(nlp, name):
     return LanguageDetector()
 
-# getting the names in the LSC review email right even if there are multiple ones:
-def oxfordcomma(listed):
-    if len(listed) == 0:
-        return ''
-    if len(listed) == 1:
-        return listed[0]
-    if len(listed) == 2:
-        return listed[0] + ' und ' + listed[1]
-    return ', '.join(listed[:-1]) + ' und ' + listed[-1]
+# load NLP models for entity recognition and langdetect
+nlp = spacy.load("en_core_web_sm")
+nlp2 = spacy.load("de_core_news_sm")
+Language.factory("language_detector", func=get_lang_detector)
+nlp.add_pipe('language_detector', last=True) 
 
 # gets number of current or past events
 def count_events_fuelsuntr(current_or_past):
     xpath_count = "count(//*[@id=\"" + current_or_past + "_events\"]/div)"
     count = round(fuels_html.tree().xpath(xpath_count))
     return count
-
-# this definitely needs to be optimised
-def convert_month(month):
-    if month == "Jan" or month == "Januar":
-        return "01"
-    if month == "Feb" or month == "Februar":
-        return "02"
-    if month == "Mar" or month == "März":
-        return "03"
-    if month == "Apr" or month == "April":
-        return "04"
-    if month == "May" or month == "Mai":
-        return "05"
-    if month == "Jun" or month == "Juni":
-        return "06"
-    if month == "Jul" or month == "Juli":
-        return "07"
-    if month == "Aug" or month == "August":
-        return "08"
-    if month == "Sep" or month == "September":
-        return "09"
-    if month == "Oct" or month == "Oktober":
-        return "10"
-    if month == "Nov" or month == "November":
-        return "11"
-    if month == "Dec" or month == "Dezember":
-        return "12"
-
-def uk_time(timestamp):
-    uk_time_split = timestamp.split(":")
-    uk_time_result = str(int(uk_time_split[0]) - 12) + ":" + str(uk_time_split[1])
-    return uk_time_result
-
-def convert_month_back(month_num):
-    if month_num == "01":
-        return "Jan"
-    if month_num == "02":
-        return "Feb"
-    if month_num == "03":
-        return "Mar"
-    if month_num == "04":
-        return "Apr"
-    if month_num == "05":
-        return "May"
-    if month_num == "06":
-        return "Jun"
-    if month_num == "07":
-        return "Jul"
-    if month_num == "08":
-        return "Aug"
-    if month_num == "09":
-        return "Sep"
-    if month_num == "10":
-        return "Oct"
-    if month_num == "11":
-        return "Nov"
-    if month_num == "12":
-        return "Dec"
-
-# load NLP models for entity recognition and langdetect
-nlp = spacy.load("en_core_web_sm")
-nlp2 = spacy.load("de_core_news_sm")
-Language.factory("language_detector", func=get_lang_detector)
-nlp.add_pipe('language_detector', last=True)    
 
 # gets FUELS list with no. of titles of events (i bet there's a more efficient way to do this)
 num_current_events = list(range(1, count_events_fuelsuntr("current")+1))
@@ -152,14 +85,6 @@ def detected_event(host_name, event_title_for_dashboard):
     operation_performed = "Event detected"
     c.execute("INSERT INTO dashboard (Host, Title, Operation, PerformedAt) VALUES (%s, %s, %s, NOW())", (host_name, event_title_for_dashboard, operation_performed, ))
     conn.commit()
-
-# I didn't save the titles for the LSC events separately, so this function gets them for the dashboard
-def extract_string_between_tags(html):
-    start_tag = "\">"
-    end_tag = "</a>"
-    start_index = html.find(start_tag)
-    end_index = html.find(end_tag)
-    return html[start_index + len(start_tag):end_index]
 
 #sets up check for couting how many of the relevant tables exist
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'upcoming_events' ''')
