@@ -175,7 +175,7 @@ table5 = c.fetchall()[0][0]
 c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'dashboard';''')
 table6 = c.fetchall()[0][0]
 
-project_tables = table1 + table2 + table3 + table4 + table5 + table6 -1
+project_tables = table1 + table2 + table3 + table4 + table5 + table6
 
 # acts accordingly.
 if project_tables == 6:
