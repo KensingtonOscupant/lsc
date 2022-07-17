@@ -87,22 +87,6 @@ def detected_event(host_name, event_title_for_dashboard):
     c.execute("INSERT INTO dashboard (Host, Title, Operation, PerformedAt) VALUES (%s, %s, %s, NOW())", (host_name, event_title_for_dashboard, operation_performed, ))
     conn.commit()
 
-#sets up check for couting how many of the relevant tables exist
-c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'upcoming_events' ''')
-table1 = c.fetchall()[0][0]
-c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'prospective_lsc_events';''')
-table2 = c.fetchall()[0][0]
-c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'lsc_events';''')
-table3 = c.fetchall()[0][0]
-c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'event_header';''')
-table4 = c.fetchall()[0][0]
-c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'num_lsc_events';''')
-table5 = c.fetchall()[0][0]
-c.execute('''SELECT count(*) FROM information_schema.tables WHERE table_name = 'dashboard';''')
-table6 = c.fetchall()[0][0]
-
-project_tables = table1 + table2 + table3 + table4 + table5 + table6
-
 # acts accordingly.
 if check_no_of_tables() == 6:
     print("All tables found!")
