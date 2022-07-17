@@ -21,6 +21,8 @@ import certifi
 from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
 from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
 from database_setup import check_no_of_tables
+from notifications import send_mail
+from notifications import emails
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -248,86 +250,8 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
                 c.execute('''SELECT id FROM upcoming_events WHERE html_insert = %s''', (event,))
                 return c.fetchone()[0]
 
-            # sends the review email to the reviewer of the institution
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-                server.login(sender_email, password)
-                with open("items.csv") as file:
-                    reader = csv.reader(file)
-                    next(reader)  # Skip header row
-                    for name, email in reader:
-                        
-                        # excludes people on the CSV. Since this email is for a FUELS event,
-                        # it is not relevant for LSI. It would be more elegant to also store this
-                        # in a database, but a CSV is easier for now, might change later
-                        if name == "Feneberg":
-                            continue
-                        
-                        # note in case anyone should ever edit this: The following %s are used as normal
-                        # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                        # look almost the same, they are used for parameter substitution and it is important to 
-                        # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                        # to SQL injection attacks. Have a very close look at the difference in usage.
-                        
-                        text_version = '''\
-                        Lieber Herr %s,
-                        (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                        Dies ist eine LSC-Testmail für
-                        www.laws-of-social-cohesion.de''' % (name)
-                        
-                        # general note on how emails work: if you receive an email with formatting, 
-                        # it always comes in two versions: plain text (above)
-                        # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                        html_version = '''\
-                        <html>
-                            <body>
-                            <p>Sehr geehrter Herr %s,<br>
-                                <br>
-                                wir aktualisieren gerade die Events auf der Seite des Projekts "Laws of Social Cohesion" und mir ist 
-                                aufgefallen, dass dort eine Veranstaltung mit %s gelistet ist. Es wäre für mich wichtig zu erfahren, ob diese
-                                Veranstaltung als "Hosted by LSI/FUELS/RiK" gekennzeichnet wurde. Wenn das der Fall ist, würde ich mich freuen,
-                                wenn Sie mich darüber hier informieren könnten. Bitte folgen Sie dem Link auch dann, wenn die Veranstaltung
-                                nicht von den einer der drei Partnerinstitutionen ausgerichtet werden sollte und Sie die Veranstaltung nicht
-                                weiter auf der Website führen möchten (z. B. weil die Veranstaltung veraltet ist).
-                                Soll ich die Meldung beibehalten, würde ich sie in folgender Form auf der Website aufführen:<br>
-                                %s 
-                                Sollten die Meldung entfernt werden, klicken Sie bitte <a href="%s">hier</a>. Sollten anderweitige Probleme
-                                bestehen, helfe ich immer gerne.<br>
-                                <br>
-                                <br>
-                                Mit freundlichen Grüßen,<br>
-                                Ihr Benjamin Mantay<br>
-                                <br>
-                                -------------<br>
-                                <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                                Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                                <br>
-                                <br>
-                                <br>
-                            </p>
-                            </body>
-                        </html>
-                        ''' % (name, speaker, event, generateDenyLink(get_id(event)))
-                        
-                        message = MIMEMultipart("alternative")
-                        message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
-                        message["From"] = sender_email
-                        message["To"] = email
-                        
-                        # Turn strings into plain/html MIMEText objects
-                        part1 = MIMEText(text_version, "plain")
-                        part2 = MIMEText(html_version, "html")
-                        
-                        # Add HTML/plain-text parts to MIMEMultipart message
-                        # The email client will try to render the last part first
-                        message.attach(part1)
-                        message.attach(part2)
-                        server.sendmail(
-                            sender_email,
-                            email,
-                            message.as_string(),
-                        )
-                
+            send_mail.send_review_mail(speaker, event, emails.lsc_mail.plain_version, emails.lsc_mail.html_version)
+    
     # creates FUELS event header
     c.execute('''CREATE TABLE event_header(
                 id INT,
