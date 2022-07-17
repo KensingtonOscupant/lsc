@@ -20,6 +20,7 @@ from spacy_langdetect import LanguageDetector
 import certifi
 from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
 from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
+from database_setup import check_no_of_tables
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -103,9 +104,9 @@ table6 = c.fetchall()[0][0]
 project_tables = table1 + table2 + table3 + table4 + table5 + table6
 
 # acts accordingly.
-if project_tables == 6:
+if check_no_of_tables() == 6:
     print("All tables found!")
-elif project_tables < 6 and project_tables >= 0:
+elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
     print("At least one table does not exist. All tables will be recreated.")
     
     # deletes tables if they exist (respectively)
