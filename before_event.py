@@ -160,12 +160,6 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
                 speaker = oxfordcomma(speaker_names)
                 print(speaker)  
 
-            # get current id of event from upcoming_events table
-
-            def get_id(event):
-                c.execute('''SELECT id FROM upcoming_events WHERE html_insert = %s''', (event,))
-                return c.fetchone()[0]
-
             conn.close()
 
             send_mail.send_review_mail(my_speaker=speaker, my_event=event, plaintext_mail=emails.lsc_mail.plain_version, html_mail=emails.lsc_mail.html_version)
