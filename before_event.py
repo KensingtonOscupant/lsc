@@ -20,7 +20,7 @@ from spacy_langdetect import LanguageDetector
 import certifi
 from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
 from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
-from database_setup import check_no_of_tables
+from database_setup import check_no_of_tables, rebuild_db
 from notifications import send_mail
 from notifications import emails
 
@@ -95,90 +95,92 @@ if check_no_of_tables() == 6:
 elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
     print("At least one table does not exist. All tables will be recreated.")
     
-    # deletes tables if they exist (respectively)
-    c.execute('''SET foreign_key_checks = 0''')
-    c.execute("DROP TABLE IF EXISTS upcoming_events")
-    c.execute("DROP TABLE IF EXISTS prospective_lsc_events;")
-    c.execute("DROP TABLE IF EXISTS lsc_events;")
-    c.execute("DROP TABLE IF EXISTS event_header;")
-    c.execute("DROP TABLE IF EXISTS num_lsc_events;")
-    #c.execute("DROP TABLE IF EXISTS dashboard;")
-    
-    # it would be more efficient to do execute the following queries in one executemany() statement,
-    # but that would make it impossible to create debug messages in between which I think is more important
-    
-    # creates upcoming events table
-    c.execute('''CREATE TABLE upcoming_events(
-                ID INT PRIMARY KEY AUTO_INCREMENT, 
-                html_insert TEXT,
-                date INT(11),
-                institution VARCHAR(5))''')
-    print("created upcoming events table")
-    
-    # creates prospective LSC events table and sets it up correctly
-    c.execute('''CREATE TABLE prospective_lsc_events(
-                slot_id INT AUTO_INCREMENT,
-                id INT,
-                active_slot BOOLEAN NOT NULL DEFAULT 0,
-                routing_url_pos VARCHAR(255),
-                routing_url_neg VARCHAR(255),
-                PRIMARY KEY (slot_id),
-                CONSTRAINT fk__prospective_lsc_events__upcoming_events
-                    FOREIGN KEY (id)
-                    REFERENCES upcoming_events(id)
-                    ON DELETE SET NULL);''')
-    print("created lsc prospective events table")
-    
-    c.execute('''INSERT INTO prospective_lsc_events (routing_url_pos, routing_url_neg) 
-             VALUES 
-             ("a", "a"),
-             ("b", "b"),
-             ("c", "c"),
-             ("d", "d"),
-             ("e", "e"),
-             ("f", "f"),
-             ("g", "g"),
-             ("h", "h"),
-             ("i", "i"),
-             ("j", "j"),
-             ("k", "k"),
-             ("l", "l"),
-             ("m", "m"),
-             ("n", "n"),
-             ("o", "o");''') # 15 slots, five per institution. This is the "RAM" of the program.
-                        # Perhaps there is a more elegant way to solve this.
-    print("populated LSC prospective events table")
-    
-    # creates LSC events table
-    c.execute('''CREATE TABLE lsc_events(
-                id INT,
-                timestamp INT(11),
-                CONSTRAINT fk__lsc_events__upcoming_events
-                    FOREIGN KEY (id)
-                    REFERENCES upcoming_events(id)
-                    ON DELETE CASCADE);''')
-    print("created LSC events table")
+    rebuild_db()
 
-    # creates table to keep track of number of LSC events
-
-    c.execute('''CREATE TABLE num_lsc_events(
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                num_events INT(11));''')
-    print("created num_lsc_events table")
+    # # deletes tables if they exist (respectively)
+    # c.execute('''SET foreign_key_checks = 0''')
+    # c.execute("DROP TABLE IF EXISTS upcoming_events")
+    # c.execute("DROP TABLE IF EXISTS prospective_lsc_events;")
+    # c.execute("DROP TABLE IF EXISTS lsc_events;")
+    # c.execute("DROP TABLE IF EXISTS event_header;")
+    # c.execute("DROP TABLE IF EXISTS num_lsc_events;")
+    # #c.execute("DROP TABLE IF EXISTS dashboard;")
     
-    # add one entry with 0 to num_lsc_events table
+    # # it would be more efficient to do execute the following queries in one executemany() statement,
+    # # but that would make it impossible to create debug messages in between which I think is more important
+    
+    # # creates upcoming events table
+    # c.execute('''CREATE TABLE upcoming_events(
+    #             ID INT PRIMARY KEY AUTO_INCREMENT, 
+    #             html_insert TEXT,
+    #             date INT(11),
+    #             institution VARCHAR(5))''')
+    # print("created upcoming events table")
+    
+    # # creates prospective LSC events table and sets it up correctly
+    # c.execute('''CREATE TABLE prospective_lsc_events(
+    #             slot_id INT AUTO_INCREMENT,
+    #             id INT,
+    #             active_slot BOOLEAN NOT NULL DEFAULT 0,
+    #             routing_url_pos VARCHAR(255),
+    #             routing_url_neg VARCHAR(255),
+    #             PRIMARY KEY (slot_id),
+    #             CONSTRAINT fk__prospective_lsc_events__upcoming_events
+    #                 FOREIGN KEY (id)
+    #                 REFERENCES upcoming_events(id)
+    #                 ON DELETE SET NULL);''')
+    # print("created lsc prospective events table")
+    
+    # c.execute('''INSERT INTO prospective_lsc_events (routing_url_pos, routing_url_neg) 
+    #          VALUES 
+    #          ("a", "a"),
+    #          ("b", "b"),
+    #          ("c", "c"),
+    #          ("d", "d"),
+    #          ("e", "e"),
+    #          ("f", "f"),
+    #          ("g", "g"),
+    #          ("h", "h"),
+    #          ("i", "i"),
+    #          ("j", "j"),
+    #          ("k", "k"),
+    #          ("l", "l"),
+    #          ("m", "m"),
+    #          ("n", "n"),
+    #          ("o", "o");''') # 15 slots, five per institution. This is the "RAM" of the program.
+    #                     # Perhaps there is a more elegant way to solve this.
+    # print("populated LSC prospective events table")
+    
+    # # creates LSC events table
+    # c.execute('''CREATE TABLE lsc_events(
+    #             id INT,
+    #             timestamp INT(11),
+    #             CONSTRAINT fk__lsc_events__upcoming_events
+    #                 FOREIGN KEY (id)
+    #                 REFERENCES upcoming_events(id)
+    #                 ON DELETE CASCADE);''')
+    # print("created LSC events table")
 
-    c.execute('''INSERT INTO num_lsc_events (num_events) VALUES (0);''')
+    # # creates table to keep track of number of LSC events
 
-    # creates dashboard table to show database transactions on website
+    # c.execute('''CREATE TABLE num_lsc_events(
+    #             id INT PRIMARY KEY AUTO_INCREMENT,
+    #             num_events INT(11));''')
+    # print("created num_lsc_events table")
+    
+    # # add one entry with 0 to num_lsc_events table
 
-    c.execute('''CREATE TABLE IF NOT EXISTS dashboard(
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                Host VARCHAR(255),
-                Title TEXT,
-                Operation VARCHAR(255),
-                PerformedAt DATETIME);''')
-    print("created dashboard table")
+    # c.execute('''INSERT INTO num_lsc_events (num_events) VALUES (0);''')
+
+    # # creates dashboard table to show database transactions on website
+
+    # c.execute('''CREATE TABLE IF NOT EXISTS dashboard(
+    #             id INT PRIMARY KEY AUTO_INCREMENT,
+    #             Host VARCHAR(255),
+    #             Title TEXT,
+    #             Operation VARCHAR(255),
+    #             PerformedAt DATETIME);''')
+    # print("created dashboard table")
 
     # stores the HTML blocks of the different events
     lsc_events = list()
@@ -263,23 +265,23 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
 
             c.execute('''USE testdatabase''')
 
-    # creates FUELS event header
-    c.execute('''CREATE TABLE event_header(
-                id INT,
-                name VARCHAR(255),
-                CONSTRAINT fk__event_header__upcoming_events
-                    FOREIGN KEY (id)
-                    REFERENCES upcoming_events(id)
-                    ON DELETE CASCADE);''')
-    print("created FUELS event header table")
+    # # creates FUELS event header
+    # c.execute('''CREATE TABLE event_header(
+    #             id INT,
+    #             name VARCHAR(255),
+    #             CONSTRAINT fk__event_header__upcoming_events
+    #                 FOREIGN KEY (id)
+    #                 REFERENCES upcoming_events(id)
+    #                 ON DELETE CASCADE);''')
+    # print("created FUELS event header table")
     
-    # this trigger resets active slots in prospective events if an event
-    # gets deleted in the upcoming table
-    c.execute('''CREATE TRIGGER reset_active_slot 
-             BEFORE DELETE ON upcoming_events
-             FOR EACH ROW
-             UPDATE prospective_lsc_events SET active_slot = 0
-             WHERE id = OLD.id''')
+    # # this trigger resets active slots in prospective events if an event
+    # # gets deleted in the upcoming table
+    # c.execute('''CREATE TRIGGER reset_active_slot 
+    #          BEFORE DELETE ON upcoming_events
+    #          FOR EACH ROW
+    #          UPDATE prospective_lsc_events SET active_slot = 0
+    #          WHERE id = OLD.id''')
      
 else:
     print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 5")
