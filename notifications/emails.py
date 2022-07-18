@@ -60,7 +60,7 @@ institute_mail = MailContent('''\
                             <h3><a href="%s">%s</a></h3>
                                     <blockquote>
                                     <p>%s, %s (physical/virtual event)</p>
-                                    <p>Seminar with <strong>%s</strong> %s</p>
+                                    <p>Seminar with <strong>%s</p>
                                     <p>Hosted by FUELS</p>
                                     </blockquote>
                             Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 

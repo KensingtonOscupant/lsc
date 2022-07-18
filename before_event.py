@@ -250,8 +250,19 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
                 c.execute('''SELECT id FROM upcoming_events WHERE html_insert = %s''', (event,))
                 return c.fetchone()[0]
 
-            send_mail.send_review_mail(speaker, event, emails.lsc_mail.plain_version, emails.lsc_mail.html_version)
+            conn.close()
+
+            send_mail.send_review_mail(my_speaker=speaker, my_event=event, plaintext_mail=emails.lsc_mail.plain_version, html_mail=emails.lsc_mail.html_version)
     
+            #connect to db
+            conn = pymysql.connect(host=db_host,
+                                user=db_user,
+                                password=db_pass)
+
+            c = conn.cursor()
+
+            c.execute('''USE testdatabase''')
+
     # creates FUELS event header
     c.execute('''CREATE TABLE event_header(
                 id INT,
@@ -346,6 +357,10 @@ for event in num_current_events:
             print("no uni found!") # confusing and incorrect in case of the else
             pass
         
+        # merging speaker and uni into one for now to ease modularization, might rename later
+
+        speaker_mail2 = speaker + '</strong> ' + uni
+
         # checks date
         date_tuple = tree.xpath('//div[@class=\'box-event-doc-header-date col-m-4\']/text()')
         date = date_tuple[0]
@@ -405,92 +420,18 @@ for event in num_current_events:
                      active_slot = 0 
                      LIMIT 1;''', (html_block,))
         conn.commit()
+        conn.close()
+
+        send_mail.send_review_mail(plaintext_mail=emails.institute_mail.plain_version, html_mail=emails.institute_mail.html_version, my_speaker=speaker, my_event=html_block, my_url=url, my_header=header, my_date=date, my_address=address, my_speaker_mail2=speaker_mail2)
         
-        # send emails for review before upload on LSC
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            server.login(sender_email, password)
-            with open("items.csv") as file:
-                reader = csv.reader(file)
-                next(reader)  # Skip header row
-                for name, email in reader:
-                    
-                    # excludes people on the CSV. Since this email is for a FUELS event,
-                    # it is not relevant for LSI. It would be more elegant to also store this
-                    # in a database, but a CSV is easier for now, might change later
-                    if name == "Feneberg":
-                        continue
-                    
-                    # note in case anyone should ever edit this: The following %s are used as normal
-                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                    # look almost the same, they are used for parameter substitution and it is important to 
-                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                    # to SQL injection attacks. Have a very close look at the difference in usage.
-                    
-                    text_version = '''\
-                    Lieber Herr %s,
-                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                    Dies ist eine LSC-Testmail für
-                    www.laws-of-social-cohesion.de''' % (name)
-                    
-                    # general note on how emails work: if you receive an email with formatting, 
-                    # it always comes in two versions: plain text (above)
-                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                    html_version = '''\
-                    <html>
-                        <body>
-                        <p>Sehr geehrter Herr %s,<br>
-                            <br>
-                            eben ist mir aufgefallen, dass heute eine Veranstaltung mit %s auf der
-                            Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
-                            folgendermaßen gestalten:<br>
-                            <h3><a href="%s">%s</a></h3>
-                                    <blockquote>
-                                    <p>%s, %s (physical/virtual event)</p>
-                                    <p>Seminar with <strong>%s</strong> %s</p>
-                                    <p>Hosted by FUELS</p>
-                                    </blockquote>
-                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
-                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte <a href="%s">hier</a>. Sollten Sie die 
-                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
-                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
-                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
-                            bestehen, helfe ich immer gerne.<br>
-                            <br>
-                            <br>
-                            Mit freundlichen Grüßen,<br>
-                            Ihr Benjamin Mantay<br>
-                            <br>
-                            -------------<br>
-                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                            <br>
-                            <br>
-                            <br>
-                        </p>
-                        </body>
-                    </html>
-                    ''' % (name, speaker, url, header, date, address, speaker, uni, generateDenyLink(current_id[0]), generateAcceptLink(current_id[0]))
-                    
-                    message = MIMEMultipart("alternative")
-                    message["Subject"] = "LSC | Veranstaltung mit %s" % (speaker)
-                    message["From"] = sender_email
-                    message["To"] = email
-                    
-                    # Turn strings into plain/html MIMEText objects
-                    part1 = MIMEText(text_version, "plain")
-                    part2 = MIMEText(html_version, "html")
-                    
-                    # Add HTML/plain-text parts to MIMEMultipart message
-                    # The email client will try to render the last part first
-                    message.attach(part1)
-                    message.attach(part2)
-                    server.sendmail(
-                        sender_email,
-                        email,
-                        message.as_string(),
-                    )
-        
+        conn = pymysql.connect(host=db_host,
+                            user=db_user,
+                            password=db_pass)
+
+        c = conn.cursor()
+
+        c.execute('''USE testdatabase''')
+
         # warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
         # (this can be extended to any number if someone is willing to create the routing URLs for it)
         c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 14''')
@@ -632,98 +573,25 @@ for event in rik_num_current_events:
                      active_slot = 0 
                      LIMIT 1;''', (html_block,))
         conn.commit()
+        conn.close()
+
+        # this is a relic, still needs to be modularized. Handles one speaker vs multiple ones
+        if speaker == "":
+            speaker_mail = ""
+            speaker_mail2 = ""
+        else:
+            speaker_mail = "mit " + speaker
+            speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker)
+
+        send_mail.send_review_mail(plaintext_mail=emails.institute_mail.plain_version, html_mail=emails.institute_mail.html_version, my_speaker=speaker_mail, my_event=html_block, my_url=url, my_header=header, my_date=date, my_address=address, my_speaker_mail2=speaker_mail2)
         
-        # send emails for review before upload on LSC
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            server.login(sender_email, password)
-            with open("items.csv") as file:
-                reader = csv.reader(file)
-                next(reader)  # Skip header row
-                for name, email in reader:
-                
-                    # excludes people on the CSV. Since this email is for a FUELS event,
-                    # it is not relevant for LSI. It would be more elegant to also store this
-                    # in a database, but a CSV is easier for now, might change later
-                    if name == "Feneberg":
-                        continue
-                    
-                    # note in case anyone should ever edit this: The following %s are used as normal
-                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                    # look almost the same, they are used for parameter substitution and it is important to 
-                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                    # to SQL injection attacks. Have a very close look at the difference in usage.
-                    
-                    if speaker == "":
-                        speaker_mail = ""
-                        speaker_mail2 = ""
-                    else:
-                        speaker_mail = "mit " + speaker
-                        speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker)
-                        
-                    text_version = '''\
-                    Lieber Herr %s,
-                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                    Dies ist eine LSC-Testmail für
-                    www.laws-of-social-cohesion.de''' % (name)
-                    
-                    # general note on how emails work: if you receive an email with formatting, 
-                    # it always comes in two versions: plain text (above)
-                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                    html_version = '''\
-                    <html>
-                        <body>
-                        <p>Sehr geehrter Herr %s,<br>
-                            <br>
-                            eben ist mir aufgefallen, dass heute eine Veranstaltung %s auf der
-                            Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
-                            folgendermaßen gestalten:<br>
-                            <h3><a href="%s">%s</a></h3>
-                                    <blockquote>
-                                    <p>%s, %s </p>
-                                    <p>%s </p>
-                                    <p>Hosted by Recht im Kontext</p>
-                                    </blockquote>
-                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
-                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte <a href="%s">hier</a>. Sollten Sie die 
-                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
-                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
-                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
-                            bestehen, helfe ich immer gerne.<br>
-                            <br>
-                            <br>
-                            Mit freundlichen Grüßen,<br>
-                            Ihr Benjamin Mantay<br>
-                            <br>
-                            -------------<br>
-                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                            <br>
-                            <br>
-                            <br>
-                        </p>
-                        </body>
-                    </html>
-                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id[0]), generateAcceptLink(current_id[0]))
-                    
-                    message = MIMEMultipart("alternative")
-                    message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
-                    message["From"] = sender_email
-                    message["To"] = email
-                    
-                    # Turn strings into plain/html MIMEText objects
-                    part1 = MIMEText(text_version, "plain")
-                    part2 = MIMEText(html_version, "html")
-                    
-                    # Add HTML/plain-text parts to MIMEMultipart message
-                    # The email client will try to render the last part first
-                    message.attach(part1)
-                    message.attach(part2)
-                    server.sendmail(
-                        sender_email,
-                        email,
-                        message.as_string(),
-                    )
+        conn = pymysql.connect(host=db_host,
+                            user=db_user,
+                            password=db_pass)
+
+        c = conn.cursor()
+
+        c.execute('''USE testdatabase''')
         
         # warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
         # (this can be extended to any number if someone is willing to create the routing URLs for it)
@@ -891,97 +759,25 @@ for event in lsi_num_current_events:
                      LIMIT 1;''', (html_block,))
         conn.commit()
         
-        # send emails for review before upload on LSC
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            server.login(sender_email, password)
-            with open("items.csv") as file:
-                reader = csv.reader(file)
-                next(reader)  # Skip header row
-                for name, email in reader:
-                    
-                    # excludes people on the CSV. Since this email is for a FUELS event,
-                    # it is not relevant for LSI. It would be more elegant to also store this
-                    # in a database, but a CSV is easier for now, might change later
-                    if name == "Feneberg":
-                        continue
-                    
-                    # note in case anyone should ever edit this: The following %s are used as normal
-                    # string manipulation placeholders. Although the %s in the MySQL queries in this script
-                    # look almost the same, they are used for parameter substitution and it is important to 
-                    # understand this difference as using string manipulation in SQL queries makes them vulnerable
-                    # to SQL injection attacks. Have a very close look at the difference in usage.
-                    
-                    if speaker == "":
-                        speaker_mail = ""
-                        speaker_mail2 = ""
-                    else:
-                        speaker_mail = "mit " + speaker
-                        speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker_db)
-                        
-                    text_version = '''\
-                    Lieber Herr %s,
-                    (das ist die plain-text version der Email, bei Gelegenheit noch ergänzen)
-                    Dies ist eine LSC-Testmail für
-                    www.laws-of-social-cohesion.de''' % (name)
-                    
-                    # general note on how emails work: if you receive an email with formatting, 
-                    # it always comes in two versions: plain text (above)
-                    # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                    html_version = '''\
-                    <html>
-                        <body>
-                        <p>Sehr geehrter Herr %s,<br>
-                            <br>
-                            eben ist mir aufgefallen, dass heute eine Veranstaltung %s auf der
-                            Website gelistet wurde. Soll ich das Event auf die LSC-Seite übertragen? Falls ja, würde ich die Meldung
-                            folgendermaßen gestalten:<br>
-                            <h3><a href="%s">%s</a></h3>
-                                    <blockquote>
-                                    <p>%s, %s </p>
-                                    <p>%s </p>
-                                    <p>Hosted by LSI</p>
-                                    </blockquote>
-                            Wenn diese Veranstaltung nicht der LSC-Seite hinzugefügt werden soll, klicken Sie bitte <a href="%s">hier</a>. 
-                            Möchten Sie die Meldung in ihrer jetzigen Form annehmen, klicken Sie bitte <a href="%s">hier</a>. Sollten Sie die 
-                            Meldung hochladen wollen, die Meldung aber fehlerhaft sein, können Sie mich darüber per Klick hier 
-                            informieren. Sie brauchen sonst nichts weiter zu unternehmen. Ich lade sie dann später korrigiert hoch 
-                            und lasse davor noch einmal einen Menschen einen Blick darauf werfen. Sollten anderweitige Probleme 
-                            bestehen, helfe ich immer gerne.<br>
-                            <br>
-                            <br>
-                            Mit freundlichen Grüßen,<br>
-                            Ihr Benjamin Mantay<br>
-                            <br>
-                            -------------<br>
-                            <a href="https://www.jura.fu-berlin.de/fachbereich/einrichtungen/zivilrecht/lehrende/engerta/Team/5_Externe-Wissenschaftler_innen/Benji">Dr. can. Benjamin Mantay</a> <br>
-                            Head of IT und Tierischer Wissenschaftler (Postdog) am Lehrstuhl Engert<br>
-                            <br>
-                            <br>
-                            <br>
-                        </p>
-                        </body>
-                    </html>
-                    ''' % (name, speaker_mail, url, header, date, address, speaker_mail2, generateDenyLink(current_id[0]), generateAcceptLink(current_id[0]))
-                    
-                    message = MIMEMultipart("alternative")
-                    message["Subject"] = "LSC | Neue Veranstaltung %s" % (speaker_mail)
-                    message["From"] = sender_email
-                    message["To"] = email
-                    
-                    # Turn strings into plain/html MIMEText objects
-                    part1 = MIMEText(text_version, "plain")
-                    part2 = MIMEText(html_version, "html")
-                    
-                    # Add HTML/plain-text parts to MIMEMultipart message
-                    # The email client will try to render the last part first
-                    message.attach(part1)
-                    message.attach(part2)
-                    server.sendmail(
-                        sender_email,
-                        email,
-                        message.as_string(),
-                    )
+        conn.close()
+
+        # this is a relic, still needs to be modularized. Handles one speaker vs multiple ones
+        if speaker == "":
+            speaker_mail = ""
+            speaker_mail2 = ""
+        else:
+            speaker_mail = "mit " + speaker
+            speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker)
+
+        send_mail.send_review_mail(plaintext_mail=emails.institute_mail.plain_version, html_mail=emails.institute_mail.html_version, my_speaker=speaker_mail, my_event=html_block, my_url=url, my_header=header, my_date=date, my_address=address, my_speaker_mail2=speaker_mail2)
+        
+        conn = pymysql.connect(host=db_host,
+                            user=db_user,
+                            password=db_pass)
+
+        c = conn.cursor()
+
+        c.execute('''USE testdatabase''')
         
         # warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
         # (this can be extended to any number if someone is willing to create the routing URLs for it)

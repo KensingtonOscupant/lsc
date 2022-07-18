@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import csv
 import pymysql
+from notifications import emails
 
 # connect to db
 
@@ -40,9 +41,26 @@ def generateDenyLink(upcoming_id):
 
 # sends the review email to the reviewer of the institution
 
-def send_review_mail(my_speaker, my_event, plaintext_mail, html_mail):
-    event_id = c.execute('''SELECT id FROM upcoming_events WHERE html_insert = %s''', (my_event,))
+# since different arguments need to be passed depending on the notification mail sent, they have to be optional.
+def send_review_mail(plaintext_mail=None, html_mail=None, my_speaker=None, my_event=None, my_url=None, my_header=None, my_date=None, my_address=None, my_speaker_mail2=None):
+
+    # db connection
+    conn = pymysql.connect(host=db_host,
+                       user=db_user,
+                       password=db_pass)
+
+    c = conn.cursor()
+
+    c.execute('''USE testdatabase''')
+
+    # get event id from db
+    c.execute('''SELECT id FROM upcoming_events WHERE html_insert = %s ORDER BY id DESC LIMIT 1''', (my_event,))
+    event_id = c.fetchall()[0][0]
+
+    # close connection
     conn.close()
+
+    #send mail
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
         server.login(sender_email, password)
@@ -68,7 +86,10 @@ def send_review_mail(my_speaker, my_event, plaintext_mail, html_mail):
                 # general note on how emails work: if you receive an email with formatting, 
                 # it always comes in two versions: plain text (above)
                 # and HTML. This is necessary, only HTML is not accepted. The plain-text version is rendered first.
-                html_version = html_mail % (name, my_speaker, my_event, generateDenyLink(event_id))
+                if html_mail == emails.lsc_mail.html_version:
+                    html_version = html_mail % (name, my_speaker, my_event, generateDenyLink(event_id))
+                elif html_mail == emails.institute_mail.html_version:
+                    html_version = html_mail % (name, my_speaker, my_url, my_header, my_date, my_address, my_speaker_mail2, generateDenyLink(event_id), generateAcceptLink(event_id))
                 
                 message = MIMEMultipart("alternative")
                 message["Subject"] = "LSC | Veranstaltung mit %s" % (my_speaker)
