@@ -178,24 +178,6 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
             c = conn.cursor()
 
             c.execute('''USE testdatabase''')
-
-    # # creates FUELS event header
-    # c.execute('''CREATE TABLE event_header(
-    #             id INT,
-    #             name VARCHAR(255),
-    #             CONSTRAINT fk__event_header__upcoming_events
-    #                 FOREIGN KEY (id)
-    #                 REFERENCES upcoming_events(id)
-    #                 ON DELETE CASCADE);''')
-    # print("created FUELS event header table")
-    
-    # # this trigger resets active slots in prospective events if an event
-    # # gets deleted in the upcoming table
-    # c.execute('''CREATE TRIGGER reset_active_slot 
-    #          BEFORE DELETE ON upcoming_events
-    #          FOR EACH ROW
-    #          UPDATE prospective_lsc_events SET active_slot = 0
-    #          WHERE id = OLD.id''')
      
 else:
     print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 5")
