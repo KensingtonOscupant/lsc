@@ -23,6 +23,7 @@ from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, ext
 from database_setup import check_no_of_tables, rebuild_db
 from notifications import send_mail
 from notifications import emails
+import dashboard
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -73,14 +74,6 @@ lsi_count_past_events = round(lsi_past_events_html.tree().xpath("count(//article
 lsi_num_current_events = list(range(1, lsi_count_current_events))
 lsi_num_past_events = list(range(1, lsi_count_past_events))
 
-# dashboard functions
-# event detected
-
-def detected_event(host_name, event_title_for_dashboard):
-    operation_performed = "Event detected"
-    c.execute("INSERT INTO dashboard (Host, Title, Operation, PerformedAt) VALUES (%s, %s, %s, NOW())", (host_name, event_title_for_dashboard, operation_performed, ))
-    conn.commit()
-
 # acts accordingly.
 if check_no_of_tables() == 6:
     print("All tables found!")
@@ -110,7 +103,7 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
         else:
             print("added one entry")
             # insert into db
-            detected_event("Legacy event on LSC page", extract_string_between_tags(event))
+            dashboard.detected_event("Legacy event on LSC page", extract_string_between_tags(event))
             date_list = lsc_html.tree().xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
             date_split = date_list[0].split(",")
             lsc_event_date_unformatted = str(date_split[0])
@@ -183,7 +176,7 @@ for event in num_current_events:
     else:
         print("added one entry")
         header = new_event[0] # this will be one of the components for the HTML of the lsc event later
-        detected_event("FUELS", header)
+        dashboard.detected_event("FUELS", header)
         print(header)
         #set url to specific events page to retrieve details
         event_link = fuels_html.tree().xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/@href')
@@ -359,7 +352,7 @@ for event in rik_num_current_events:
         print("added one entry")
         header = new_event[0] # this will be one of the components for the HTML of the lsc event later
         print(header)
-        detected_event("Recht im Kontext", header)
+        dashboard.detected_event("Recht im Kontext", header)
         #set url to specific events page to retrieve details
         url_pt1 = "https://www.rechtimkontext.de/"
         url_pt2 = str(rik_html.tree().xpath('//*[@id=\"c51\"]/div/div/a[' + str(event) + ']/@href')[0])
@@ -513,7 +506,7 @@ for event in lsi_num_current_events:
     else:
         print("added one entry")
         header = new_event[0] # this will be one of the components for the HTML of the lsc event later
-        detected_event("LSI", header)
+        dashboard.detected_event("LSI", header)
         print(header)
         #set url to specific events page to retrieve details
         event_link = lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/@href')
