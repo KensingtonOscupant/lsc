@@ -73,14 +73,6 @@ lsi_count_past_events = round(lsi_past_events_html.tree().xpath("count(//article
 lsi_num_current_events = list(range(1, lsi_count_current_events))
 lsi_num_past_events = list(range(1, lsi_count_past_events))
 
-# email links to accept page for LSC events
-
-def generateAcceptLink(upcoming_id):
-    return "https://lscwebservice.com/" + str(upcoming_id) + "/accept/"
-
-def generateDenyLink(upcoming_id):
-    return "https://lscwebservice.com/" + str(upcoming_id) + "/deny/"
-
 # dashboard functions
 # event detected
 
