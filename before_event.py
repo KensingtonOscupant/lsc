@@ -21,8 +21,7 @@ import certifi
 from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
 from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
 from database_setup import check_no_of_tables, rebuild_db
-from notifications import send_mail
-from notifications import emails
+from notifications import capacity_warning
 import dashboard
 from scraping.lsc_scraping import split_into_html_blocks
 from scraping import fuels_scraping, rik_scraping, lsi_scraping
@@ -88,36 +87,8 @@ else:
 
 fuels_scraping.scrape(num_current_events)
 
-conn = pymysql.connect(host=db_host,
-                    user=db_user,
-                    password=db_pass)
-
-c = conn.cursor()
-
-c.execute('''USE testdatabase''')
-
-# warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
-# (this can be extended to any number if someone is willing to create the routing URLs for it)
-c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 14''')
-tuple14 = c.fetchall()
-c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 15''')
-tuple15 = c.fetchall()
-checknum1 = tuple14[0][0]
-checknum2 = tuple15[0][0]
-checknum = checknum1 + checknum2
-
-# sends email if 4/5 events are stored
-if checknum == 1:
-    print('''Es lässt sich nur noch eine Veranstaltung zwischenspeichern, bis der Arbeitsspeicher voll ist. Bitte entscheiden Sie über
-    Veranstaltungen oder löschen Sie alle zwischengespeicherten Veranstaltungen hier.''')
-    
-# sends email if 5/5 events are stored
-elif checknum == 2:
-    print('''Speicher voll. Jede von jetzt an hinzugefügte Veranstaltung wird nicht ordnungsgemäß verarbeitet werden können,
-            bis über zwischengespeicherte Veranstaltungen von FUELS, LSI und RiK entschieden worden ist.''')
-    
-else:
-    print("alles im grünen Bereich")
+# checks if there are still free slots in prospective_events
+capacity_warning.cap_warning()
 
 # RiK
 
@@ -129,67 +100,15 @@ rik_num_past_events = list(range(1, rik_count_num_past_events+1))
 
 rik_scraping.scrape(rik_num_current_events)
 
-conn = pymysql.connect(host=db_host,
-                    user=db_user,
-                    password=db_pass)
-
-c = conn.cursor()
-
-c.execute('''USE testdatabase''')
-        
-# warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
-# (this can be extended to any number if someone is willing to create the routing URLs for it)
-c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 14''')
-tuple14 = c.fetchall()
-c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 15''')
-tuple15 = c.fetchall()
-checknum1 = tuple14[0][0]
-checknum2 = tuple15[0][0]
-checknum = checknum1 + checknum2
-
-# sends email if 4/5 events are stored
-if checknum == 1:
-    print('''Es lässt sich nur noch eine Veranstaltung zwischenspeichern, bis der Arbeitsspeicher voll ist. Bitte entscheiden Sie über
-    Veranstaltungen oder löschen Sie alle zwischengespeicherten Veranstaltungen hier.''')
-    
-# sends email if 5/5 events are stored
-elif checknum == 2:
-    print('''Speicher voll. Jede von jetzt an hinzugefügte Veranstaltung wird nicht ordnungsgemäß verarbeitet werden können,
-            bis über zwischengespeicherte Veranstaltungen von FUELS, LSI und RiK entschieden worden ist.''')
-    
-else:
-    print("alles im grünen Bereich")
+# checks if there are still free slots in prospective_events
+capacity_warning.cap_warning()
     
 # LSI
 
 lsi_scraping.scrape(lsi_num_current_events)
 
-c = conn.cursor()
-
-c.execute('''USE testdatabase''')
-
-# warning mechanism so that it does not exceed its capacity of max. 5 events stored at a time
-# (this can be extended to any number if someone is willing to create the routing URLs for it)
-c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 14''')
-tuple14 = c.fetchall()
-c.execute('''SELECT active_slot FROM prospective_lsc_events WHERE slot_id = 15''')
-tuple15 = c.fetchall()
-checknum1 = tuple14[0][0]
-checknum2 = tuple15[0][0]
-checknum = checknum1 + checknum2
-
-# sends email if 4/5 events are stored
-if checknum == 1:
-    print('''Es lässt sich nur noch eine Veranstaltung zwischenspeichern, bis der Arbeitsspeicher voll ist. Bitte entscheiden Sie über
-    Veranstaltungen oder löschen Sie alle zwischengespeicherten Veranstaltungen hier.''')
-    
-# sends email if 5/5 events are stored
-elif checknum == 2:
-    print('''Speicher voll. Jede von jetzt an hinzugefügte Veranstaltung wird nicht ordnungsgemäß verarbeitet werden können,
-            bis über zwischengespeicherte Veranstaltungen von FUELS, LSI und RiK entschieden worden ist.''')
-    
-else:
-    print("alles im grünen Bereich")
+# checks if there are still free slots in prospective_events
+capacity_warning.cap_warning()
     
 # next: check all database entries against past events. If one appears there, it is deleted from the database
 # for extra efficiency. Actually checking past events is not necessary (or smart) to update current events 
