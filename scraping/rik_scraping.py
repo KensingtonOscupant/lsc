@@ -7,19 +7,7 @@ import requests
 import datetime
 import parsing
 import time
-import spacy
-from spacy.language import Language
-from spacy_langdetect import LanguageDetector
-
-# # set up langdetect
-# def get_lang_detector(nlp, name):
-#     return LanguageDetector()
-
-# # # load NLP models for entity recognition and langdetect
-# nlp = spacy.load("en_core_web_sm")
-# nlp2 = spacy.load("de_core_news_sm")
-# Language.factory("language_detector", func=get_lang_detector)
-# nlp.add_pipe('language_detector', last=True) 
+from notifications import send_mail, emails
 
 def scrape(rik_num_current_events):
 
@@ -155,3 +143,5 @@ def scrape(rik_num_current_events):
             else:
                 speaker_mail = "mit " + speaker
                 speaker_mail2 = "Seminar with <strong>%s</strong>" % (speaker)
+            
+            send_mail.send_review_mail(plaintext_mail=emails.institute_mail.plain_version, html_mail=emails.institute_mail.html_version, my_speaker=speaker, my_event=html_block, my_url=url, my_header=header, my_date=date, my_address=address, my_speaker_mail2=speaker_mail2)
