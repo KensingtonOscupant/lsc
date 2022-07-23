@@ -1,18 +1,19 @@
 from bs4 import BeautifulSoup
-from .. import get_html
-from .. import parsing
-from .. import dashboard
+import get_html
+import parsing
+import dashboard
 import pymysql
 import os
 import datetime
 import time
+import re
+from notifications import send_mail, emails
 
 def split_into_html_blocks():
 
     db_host = os.environ.get('DB_HOST')
     db_user = os.environ.get('DB_USER')
     db_pass = os.environ.get('DB_PASS')
-    email_pass = os.environ.get('EMAIL_PASS')
 
     #connect to db
     conn = pymysql.connect(host=db_host,
@@ -39,10 +40,11 @@ def split_into_html_blocks():
         c.execute('''SELECT 1 FROM upcoming_events WHERE html_insert = %s''', (event,))
         if c.fetchone():
             print("Found LSC event!")
+            print("event: " + event)
         else:
             print("added one entry")
             # insert into db
-            detected_event("Legacy event on LSC page", parsing.extract_string_between_tags(event))
+            dashboard.detected_event("Legacy event on LSC page", parsing.extract_string_between_tags(event))
             date_list = get_html.lsc_html.tree().xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
             date_split = date_list[0].split(",")
             lsc_event_date_unformatted = str(date_split[0])
@@ -63,3 +65,22 @@ def split_into_html_blocks():
                          ORDER BY active_slot DESC LIMIT 1''',
                          (event, ))
             conn.commit()
+
+            soup = BeautifulSoup(event, "html.parser")
+            speaker_names = list()
+            for element in soup.find_all('strong'):
+                result = re.search(r"\w+.+\w+", str(element.text))
+                speaker_names.append(result.group(0))
+            if len(speaker_names) > 1:
+                print("multiple speakers!")
+                speaker = parsing.oxfordcomma(speaker_names)
+                print(speaker)
+            else:
+                print("one speaker")
+                speaker = parsing.oxfordcomma(speaker_names)
+                print(speaker)  
+
+            conn.close()
+
+            # sends emails
+            send_mail.send_review_mail(my_speaker=speaker, my_event=event, plaintext_mail=emails.lsc_mail.plain_version, html_mail=emails.lsc_mail.html_version)

@@ -24,6 +24,7 @@ from database_setup import check_no_of_tables, rebuild_db
 from notifications import send_mail
 from notifications import emails
 import dashboard
+from scraping.lsc_scraping import split_into_html_blocks
 
 db_host = os.environ.get('DB_HOST')
 db_user = os.environ.get('DB_USER')
@@ -82,48 +83,50 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
     
     rebuild_db()
 
-    lsc_events = list()
+    split_into_html_blocks()
+    
+    # lsc_events = list()
     
     # the following section runs the initial check on the LSC events that already exist
     # parses HTML to create these blocks and insert them into the list lsc_events
-    soup = BeautifulSoup(lsc_html.fulltext(), 'html.parser')
-    data = soup.find_all("div", {"class" : "editor-content hyphens"})
-    data_string = str(data[0])
-    soup = BeautifulSoup(''.join(data_string), 'html.parser')
-    for i in soup.prettify().split('events')[1].split('<hr/>'):
-        lsc_events.append('<hr/>' + ''.join(i))
+    # soup = BeautifulSoup(lsc_html.fulltext(), 'html.parser')
+    # data = soup.find_all("div", {"class" : "editor-content hyphens"})
+    # data_string = str(data[0])
+    # soup = BeautifulSoup(''.join(data_string), 'html.parser')
+    # for i in soup.prettify().split('events')[1].split('<hr/>'):
+    #     lsc_events.append('<hr/>' + ''.join(i))
     
-    k = 0
-    for event in lsc_events[1:-1]:
-        # checks if event is already in database
-        k += 1
-        c.execute('''SELECT 1 FROM upcoming_events WHERE html_insert = %s''', (event,))
-        if c.fetchone():
-            print("Found LSC event!")
-        else:
-            print("added one entry")
-            # insert into db
-            dashboard.detected_event("Legacy event on LSC page", extract_string_between_tags(event))
-            date_list = lsc_html.tree().xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
-            date_split = date_list[0].split(",")
-            lsc_event_date_unformatted = str(date_split[0])
-            lsc_institution = "LSC"
-            lsc_event_date_comp = lsc_event_date_unformatted.split(" ")
-            datetime_1 = datetime.date(int(lsc_event_date_comp[2]), int(convert_month(lsc_event_date_comp[0])), int(lsc_event_date_comp[1]))
-            lsc_event_date = round((time.mktime(datetime_1.timetuple())))
-            c.execute('''INSERT INTO upcoming_events (html_insert, date, institution) VALUES (%s, %s, %s)''', (event, lsc_event_date, lsc_institution, ))
-            c.execute('''INSERT INTO lsc_events (id) VALUES(
-                         (SELECT id FROM upcoming_events 
-                         WHERE html_insert = %s))''',
-                         (event, ))
-            c.execute('''UPDATE prospective_lsc_events SET id = (
-                         (SELECT id FROM upcoming_events 
-                         WHERE html_insert = %s)),
-                         active_slot = 1
-                         WHERE active_slot = 0 
-                         ORDER BY active_slot DESC LIMIT 1''',
-                         (event, ))
-            conn.commit()
+    # k = 0
+    # for event in lsc_events[1:-1]:
+    #     # checks if event is already in database
+    #     k += 1
+    #     c.execute('''SELECT 1 FROM upcoming_events WHERE html_insert = %s''', (event,))
+    #     if c.fetchone():
+    #         print("Found LSC event!")
+    #     else:
+    #         print("added one entry")
+    #         # insert into db
+    #         dashboard.detected_event("Legacy event on LSC page", extract_string_between_tags(event))
+    #         date_list = lsc_html.tree().xpath('//div[@class=\'content-wrapper main horizontal-bg-container-main\']//blockquote[' + str(k) + ']/p[1]/text()')
+    #         date_split = date_list[0].split(",")
+    #         lsc_event_date_unformatted = str(date_split[0])
+    #         lsc_institution = "LSC"
+    #         lsc_event_date_comp = lsc_event_date_unformatted.split(" ")
+    #         datetime_1 = datetime.date(int(lsc_event_date_comp[2]), int(convert_month(lsc_event_date_comp[0])), int(lsc_event_date_comp[1]))
+    #         lsc_event_date = round((time.mktime(datetime_1.timetuple())))
+    #         c.execute('''INSERT INTO upcoming_events (html_insert, date, institution) VALUES (%s, %s, %s)''', (event, lsc_event_date, lsc_institution, ))
+    #         c.execute('''INSERT INTO lsc_events (id) VALUES(
+    #                      (SELECT id FROM upcoming_events 
+    #                      WHERE html_insert = %s))''',
+    #                      (event, ))
+    #         c.execute('''UPDATE prospective_lsc_events SET id = (
+    #                      (SELECT id FROM upcoming_events 
+    #                      WHERE html_insert = %s)),
+    #                      active_slot = 1
+    #                      WHERE active_slot = 0 
+    #                      ORDER BY active_slot DESC LIMIT 1''',
+    #                      (event, ))
+    #         conn.commit()
             
             # parses the blocks for the names of the speakers to be used **only** in the review email.
             # inaccuracies here do not affect the result on the website.
@@ -131,32 +134,30 @@ elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
             # I couldn't think of anything more efficient in this case though. Hence, this could be 
             # optimized by getting rid of the regex below.
 
-            soup = BeautifulSoup(event, "html.parser")
-            speaker_names = list()
-            for element in soup.find_all('strong'):
-                result = re.search(r"\w+.+\w+", str(element.text))
-                speaker_names.append(result.group(0))
-            if len(speaker_names) > 1:
-                print("multiple speakers!")
-                speaker = oxfordcomma(speaker_names)
-                print(speaker)
-            else:
-                print("one speaker")
-                speaker = oxfordcomma(speaker_names)
-                print(speaker)  
+            # soup = BeautifulSoup(event, "html.parser")
+            # speaker_names = list()
+            # for element in soup.find_all('strong'):
+            #     result = re.search(r"\w+.+\w+", str(element.text))
+            #     speaker_names.append(result.group(0))
+            # if len(speaker_names) > 1:
+            #     print("multiple speakers!")
+            #     speaker = oxfordcomma(speaker_names)
+            #     print(speaker)
+            # else:
+            #     print("one speaker")
+            #     speaker = oxfordcomma(speaker_names)
+            #     print(speaker)  
 
-            conn.close()
-
-            send_mail.send_review_mail(my_speaker=speaker, my_event=event, plaintext_mail=emails.lsc_mail.plain_version, html_mail=emails.lsc_mail.html_version)
+            # conn.close()
     
             #connect to db
-            conn = pymysql.connect(host=db_host,
-                                user=db_user,
-                                password=db_pass)
+            # conn = pymysql.connect(host=db_host,
+            #                     user=db_user,
+            #                     password=db_pass)
 
-            c = conn.cursor()
+            # c = conn.cursor()
 
-            c.execute('''USE testdatabase''')
+            # c.execute('''USE testdatabase''')
      
 else:
     print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 5")
