@@ -1,28 +1,14 @@
 # %%
-from lxml import html, etree
+from lxml import html
 import os
 import pymysql
-import spacy
 import requests
-import smtplib
-import ssl
-import csv
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from bs4 import BeautifulSoup
-import re
-import datetime
-import time
-import calendar
 import jellyfish
-from spacy.language import Language
-from spacy_langdetect import LanguageDetector
-import certifi
 from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
 from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
 from database_setup import check_no_of_tables, rebuild_db
 from notifications import capacity_warning
-import dashboard
 from scraping.lsc_scraping import split_into_html_blocks
 from scraping import fuels_scraping, rik_scraping, lsi_scraping
 
