@@ -31,7 +31,7 @@ Since late 2021, I have been supporting in an interdisciplinary research project
 
 One of my administrative tasks at LSC is to keep the events section of the project up to date. Events would be hosted by one of the three institutes and announcements would be published on their websites. I should monitor the three events sections and if a new one showed up, I should ask the one in charge at the respective institute whether the event is considered relevant to the project and should be listed on the LSC page, and if so, create a brief note following a consistent format and add it there to link back to the institute’s event page for that event. After I had done this a few times, I thought: Why not automate it? So I set out on my journey to (hopefully) make myself obsolete.
 
-What seemed incredibly trivial at first turned out to be more of a day’s work. I ended up working on it for several weeks. Although this was not my first project, little did I know that I had just embarked on a journey leading me through the full stack and discover a lot of fascinating subjects I had never spent much detailed thought on before.
+What seemed incredibly trivial at first turned out to be more than a day’s work. I ended up working on it for several weeks. Although this was not my first project, little did I know that I had just embarked on a journey leading me through the full stack and discover a lot of fascinating subjects I had never spent much detailed thought on before.
 
 ## III. Description
 
