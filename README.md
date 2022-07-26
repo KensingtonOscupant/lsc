@@ -53,3 +53,44 @@ Anything that routinely happens after the click is kept in after_events.py, i.e.
 ### 2. Frontend
 
 However, not _everything_ that needs to happen after the click can happen through the execution of a script since the decision whether the event has been accepted or rejected first needs to find its way into the database. The web server setup for this is kept in a <a href="https://github.com/KensingtonOscupant/lsc-webserver">separate repository</a>.
+
+### 3. Deployment
+
+#### a. Preliminary remarks
+
+My first idea for the environment to deploy the project in came from a random discovery during the time I had to make the decision: Freie Universität offers up to three free MySQL databases. Since this was a work-related project, I thought that it would be a good idea to make use of the offer on this occasion. However, once I had generated my credentials and tried to create the first database, I found out that it was only possible to connect to the databases via a specific server by Freie Universität. Any applications that needed access to said databases had to run on this server. I moved the database to AWS RDS and tried to at least run the rest of the backend on the university server, but permissions issues and I the Debian release was not quite up to date. Hence, I set up an up-to-date version in my home directory using pyenv. However, as soon as I wanted to set up the web server, I was met with more permissions challenges, the only difference being that I was unable to configure a more recent Python version to run by default if a Python script is called directly through the browser.
+
+It was at this point that I noticed that I probably spent too much time on the wrong problems, focusing on fixing issues related to outdated releases and a lack of access rights that I could not solve and that would also not provide me with any experience worth continuing. Additionally, I realized that handling credentials on an outdated server was also a bad idea in terms of security. Therefore I decided to shift the entire setup to AWS.
+
+#### b. Initial setup
+
+As I had already made the decision to set up MySQL on an AWS RDS instance earlier, it made sense to build the other parts of the project in the AWS ecosystem as well.  The main question I had to answer was how to run the code. While I was creating this project, I was also preparing for the AWS Certified Cloud Practitioner (CCP) exam and learned that the most efficient way to achieve such a task was through serverless computing. The sub-units of containers that allow this on AWS are called Lambda functions, which I decided to use. However, in my case, there was a catch: Code can be run on Lambda very easily, but the program I wanted to run also relied on Selenium, which again relies on a web driver.  I could fix this by making use of the functionality of Lambda to allow deployment of functions in images by packaging the code in Docker along with snapshots of Chrome, deploying it with the Serverless Framework. The setup looked like this:
+
+[Insert AWS architecture diagram here]
+
+However, this raised a new challenge because of the nature of Lambda functions: Since they can generally either (1) solely interact with services within a VPC, in this case the default VPC of my AWS account, or (2) only access the public internet, but not the AWS services inside, I had to set up a NAT gateway to allow the function to both send requests to websites to check for updates and insert these records into the database located in the VPC. This worked out, however, a pre-configured NAT gateway on AWS costs $0.045 per hour, which would amount to roughly $30 per month, which I found was too much to be spent on a project like this. The alternatives I considered were <a href="https://medium.com/@ihor.mudrak.uk/aws-how-to-call-a-lambda-from-another-lambda-inside-vpc-or-how-to-publish-to-sns-from-lambda-6b4c52bc5cf7">running two functions, one within the VPS and one outside of it</a>; however, I could not entirely gauge the implications of the Selenium build which is why I decided against it.
+
+#### c. Amended setup
+
+Instead, I used the more traditional cloud approach of deploying the program from an EC2 instance. This solved multiple problems: Firstly, it eliminated the cost problem since smaller instances like t2.micro are included in the AWS free tier. Secondly, there was no need to store the CSV file in S3 anymore; with my previous plan, this was necessary as Lambda functions only have a temporary directory /tmp which does not allow for permanent storage. With an EC2 instance, it is simple to store the CSV file in the same directory as the code. This also allows the program to access the file as a CSV, which is not necessarily the case on S3 because every file stored on S3 is an AWS object the contents of which are typically accessed via the boto3 module in Python. I noticed that this can cause problems because using the .get() method from boto3 instead of with open … as file does not work well with processing a CSV file. Finally, I also did not have to rely on further AWS infrastructure anymore to store environment variables (even though Lambda functions make this surprisingly easy).
+
+[Insert new AWS diagram here]
+
+#### d. Virtualizing Chrome on Linux
+
+My next challenge was to run Selenium on the EC2 instance. At first, I thought that it would be necessary have a virtual frame buffer like Xfvb for running Chrome properly, no matter with which setup Selenium and Chrome Driver are used. However, this turned out to be false: With the correct flags for the Chrome Driver set in the Python script, there was no need for any additional tools. Furthermore, I found an even easier option later by using webdriver-manager which automatically manages the webdriver.
+
+#### e. Cron jobs
+
+To automate executions, I used the built-in Linux scheduler cron. In order to run Python files in their virtual environment, I created bash scripts that start the venv before running python. Additionally, I redirected the output to a log file instead of using the standard MAILTO variable to avoid the risk of unnecessary SMTP errors. Alternatives for proper queueing instead of the rigidity of cron jobs would have been Celery and huey as a more light-weight alternative.
+
+#### f. Proxying traffic through Cloudflare
+
+All traffic to the website is proxied through CloudFlare.
+
+
+
+
+
+
+
