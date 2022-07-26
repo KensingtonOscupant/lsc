@@ -8,10 +8,6 @@ partner institutions.'''
 from lxml import html
 import os
 import pymysql
-import requests
-from bs4 import BeautifulSoup
-import jellyfish
-import get_html as gh
 import database_setup as dbs
 from notifications import capacity_warning as cp
 from scraping.lsc_scraping import split_into_html_blocks
