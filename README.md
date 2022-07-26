@@ -13,7 +13,7 @@ A log of the application's recent activity can be found at <a href="https://www.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[a. "Before the click"](#a-before-the-click)  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[aa. Database](#aa-Database)  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[bb. Retrieving website contents](#bb-retrieving-website-contents)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[b. "After the click"](#b-after-the-click)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[b. "After the click"](#b-after-the-click)  
 &nbsp;&nbsp;&nbsp;&nbsp;[2. Frontend](#2-Frontend)  
 &nbsp;&nbsp;&nbsp;&nbsp;[3. Deployment](#3-Deployment)  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[a. Preliminary remarks](#a-preliminary-remarks)  
