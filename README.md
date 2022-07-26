@@ -2,7 +2,7 @@
 
 This project maintains the events page of <a href="https://www.laws-of-social-cohesion.de/Events/index.html">Laws of Social Cohesion</a>. It automates the curation of events from LSC's partner institutions Freie Universität Empirical Legal Studies Center (<a href="https://www.jura.fu-berlin.de/en/forschung/fuels">FUELS</a>), the Law and Society Institute (<a href="https://www.rewi.hu-berlin.de/en/lf/oe/lsi?set_language=en">LSI</a>) at Humboldt University of Berlin and <a href="https://www.rechtimkontext.de/en/start/">Recht im Kontext</a>. 
 
-A log of the application's recent activity can be found at <a href="https://www.lscwebservice.com">lscwebservice.com</a>.
+A log of the application's recent activity can be found at <a href="https://lscwebservice.com">lscwebservice.com</a>.
 
 ## Table of Contents
 
