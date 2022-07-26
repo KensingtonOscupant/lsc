@@ -1,4 +1,5 @@
-
+import get_html as gh
+from lxml import html, etree
 
 """Functions that support proper parsing and processing of the HTML 
 retrieved from the websites of the three institutions."""
@@ -80,4 +81,22 @@ def extract_string_between_tags(html):
     end_index = html.find(end_tag)
     return html[start_index + len(start_tag):end_index]
 
+# gets number of current FUELS events
+def count_events_fuelsuntr():
+    xpath_count = "count(//*[@id=current_events]/div)"
+    count = round(gh.fuels_html.tree().xpath(xpath_count))
+    num_current_events = list(range(1, count+1))
+    return num_current_events
 
+# gets number of current FUELS events
+def lsi_count_current_events():
+    count = round(gh.lsi_current_events_html.tree().xpath("count(//article)"))
+    lsi_num_current_events = list(range(1, count))
+    return lsi_num_current_events
+
+# gets number of current RiK events
+
+def rik_count_num_current_events():
+    count = round(gh.rik_html.tree().xpath("count(//*[@id=\"c51\"]/div/div/a)"))
+    rik_num_current_events = list(range(1, count))
+    return rik_num_current_events
