@@ -10,11 +10,11 @@ A log of the application's recent activity can be found at <a href="https://www.
 [II. Challenge](#challenge)  
 [III. Description](#description)  
 &nbsp;&nbsp;[1. Backend](#Backend)  
-    [a. "Before the click"](#before-the-click)  
-      [aa. Database](#Database)  
-      [bb. Retrieving website contents](#retrieving-website-contents)  
-    [b. "After the click"](#after-the-click)  
-  [2. Frontend](#Frontend)  
+&nbsp;&nbsp;&nbsp;&nbsp;[a. "Before the click"](#before-the-click)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[aa. Database](#Database)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[bb. Retrieving website contents](#retrieving-website-contents)  
+&nbsp;&nbsp;&nbsp;&nbsp;[b. "After the click"](#after-the-click)  
+&nbsp;&nbsp;[2. Frontend](#Frontend)  
 
 ## Context
 
