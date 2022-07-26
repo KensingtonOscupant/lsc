@@ -1,4 +1,8 @@
 # %%
+
+'''This is the one of the two main files of the application. It handles the workflow
+from -- if necessary -- (re)building the database to sending notification emails.'''
+
 from lxml import html
 import os
 import pymysql
