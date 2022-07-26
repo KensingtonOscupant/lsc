@@ -63,10 +63,6 @@ cp.cap_warning()
 
 # RiK
 
-# gets list with no of titles of events (i bet there's a more efficient way to do this)
-rik_count_num_current_events = round(gh.rik_html.tree().xpath("count(//*[@id=\"c51\"]/div/div/a)"))
-rik_num_current_events = list(range(1, rik_count_num_current_events+1))
-
 rik_scraping.scrape(parsing.rik_count_num_current_events())
 
 # checks if there are still free slots in prospective_events
