@@ -16,7 +16,7 @@ A log of the application's recent activity can be found at <a href="https://www.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[b. "After the click"](#after-the-click)  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2. Frontend](#Frontend)  
 
-## Context
+## I. Context
 
 Since late 2021, I have been supporting in an interdisciplinary research project called “Laws of Social Cohesion” (LSC) mostly in its administrative tasks. The project aims to explore the manyfold ways in which the law affects social cohesion. The researchers involved are affiliated with three different partner institutes: Freie Universität Empirical Legal Studies Center (FUELS) at Freie Universität Berlin, the Law and Society Institute (LSI) at Humboldt University of Berlin and Recht im Kontext (RiK), also at Humboldt University. LSC has a <a href="https://www.laws-of-social-cohesion.de/About-us/index.html">website</a> that showcases the progress made by the different research teams.
 
