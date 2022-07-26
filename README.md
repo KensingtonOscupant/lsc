@@ -7,14 +7,14 @@ A log of the application's recent activity can be found at <a href="https://www.
 ## Table of Contents
 
 [I. Context](#context)  
-[II. Challenge](#challenge)
-[III. Description](#description)
-[1. Backend](#Backend)
-[a. "Before the click"](#"Before the click")
-[aa. Database](#Database)
-[bb. Retrieving website contents]("Retrieving website contents")
-[b. "After the click"]("After the click")
-[2. Frontend](#Frontend)
+[II. Challenge](#challenge)  
+[III. Description](#description)  
+[1. Backend](#Backend)  
+[a. "Before the click"](#"Before the click")  
+[aa. Database](#Database)  
+[bb. Retrieving website contents]("Retrieving website contents")  
+[b. "After the click"]("After the click")  
+[2. Frontend](#Frontend)  
 
 ## Context
 
