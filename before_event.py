@@ -36,7 +36,7 @@ smtp_server = "smtp.gmail.com"
 sender_email = "lsc.webservice@gmail.com"
 password = email_pass
 
-# acts accordingly.
+# checks if the database still exists
 if dbs.check_no_of_tables() == 6:
     print("All tables found!")
 elif dbs.check_no_of_tables() < 6 and dbs.check_no_of_tables() >= 0:
@@ -45,34 +45,30 @@ elif dbs.check_no_of_tables() < 6 and dbs.check_no_of_tables() >= 0:
     # rebuilds the database
     dbs.rebuild_db()
 
-    # splits existing HTML into blocks; also sends notification emails
+    '''if it had to be rebuilt, it is possible that there are events on the LSC page already.
+    These events are scraped by splitting the HTML into blocks and the webmaster is notified 
+    and asked individually whether they would like to keep or discard them.'''
     split_into_html_blocks()
      
 else:
     print("Error: The number of tables does not make any sense. It is either smaller than 0 or greater than 5")
 
 
-# main part of the program: monitors changes to events on the websites
+# main part of the program: keeps track of changes to events on the websites
 
 # FUELS
-
 fuels_scraping.scrape(parsing.count_events_fuelsuntr())
 
 # checks if there are still free slots in prospective_events
 cp.cap_warning()
 
 # RiK
-
 rik_scraping.scrape(parsing.rik_count_num_current_events())
-
-# checks if there are still free slots in prospective_events
 cp.cap_warning()
     
 # LSI
 
 lsi_scraping.scrape(parsing.lsi_count_current_events())
-
-# checks if there are still free slots in prospective_events
 cp.cap_warning()
     
 '''check all database entries against past events on the websites. If one appears there, it is deleted from the database
