@@ -6,7 +6,7 @@ A log of the application's recent activity can be found at <a href="https://www.
 
 ## Table of Contents
 
-[Context](##context)
+[Context](#context)
 
 ## Context
 
