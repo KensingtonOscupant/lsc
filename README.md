@@ -9,7 +9,7 @@ A log of the application's recent activity can be found at <a href="https://www.
 [I. Context](#context)  
 [II. Challenge](#challenge)  
 [III. Description](#description)  
-  [1. Backend](#Backend)  
+&nbsp;&nbsp;[1. Backend](#Backend)  
     [a. "Before the click"](#before-the-click)  
       [aa. Database](#Database)  
       [bb. Retrieving website contents](#retrieving-website-contents)  
