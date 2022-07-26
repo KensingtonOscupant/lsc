@@ -5,9 +5,8 @@ import pymysql
 import requests
 from bs4 import BeautifulSoup
 import jellyfish
-from get_html import fuels_html, lsc_html, rik_html, lsi_current_events_html, lsi_past_events_html
-from parsing import convert_month, convert_month_back, oxfordcomma, uk_time, extract_string_between_tags
-from database_setup import check_no_of_tables, rebuild_db
+import get_html as gh
+import database_setup as dbs
 from notifications import capacity_warning
 from scraping.lsc_scraping import split_into_html_blocks
 from scraping import fuels_scraping, rik_scraping, lsi_scraping
@@ -38,7 +37,7 @@ password = email_pass
 # gets number of current or past events
 def count_events_fuelsuntr(current_or_past):
     xpath_count = "count(//*[@id=\"" + current_or_past + "_events\"]/div)"
-    count = round(fuels_html.tree().xpath(xpath_count))
+    count = round(gh.fuels_html.tree().xpath(xpath_count))
     return count
 
 # gets FUELS list with no. of titles of events (i bet there's a more efficient way to do this)
@@ -46,19 +45,19 @@ num_current_events = list(range(1, count_events_fuelsuntr("current")+1))
 num_past_events = list(range(1, count_events_fuelsuntr("past")+1))
 
 # gets LSI list with no. of titles of events
-lsi_count_current_events = round(lsi_current_events_html.tree().xpath("count(//article)"))
-lsi_count_past_events = round(lsi_past_events_html.tree().xpath("count(//article)"))
+lsi_count_current_events = round(gh.lsi_current_events_html.tree().xpath("count(//article)"))
+lsi_count_past_events = round(gh.lsi_past_events_html.tree().xpath("count(//article)"))
 lsi_num_current_events = list(range(1, lsi_count_current_events))
 lsi_num_past_events = list(range(1, lsi_count_past_events))
 
 # acts accordingly.
-if check_no_of_tables() == 6:
+if dbs.check_no_of_tables() == 6:
     print("All tables found!")
-elif check_no_of_tables() < 6 and check_no_of_tables() >= 0:
+elif dbs.check_no_of_tables() < 6 and dbs.check_no_of_tables() >= 0:
     print("At least one table does not exist. All tables will be recreated.")
     
     # rebuilds the database
-    rebuild_db()
+    dbs.rebuild_db()
 
     # splits existing HTML into blocks; also sends notification emails
     split_into_html_blocks()
@@ -79,8 +78,8 @@ capacity_warning.cap_warning()
 # RiK
 
 # gets list with no of titles of events (i bet there's a more efficient way to do this)
-rik_count_num_current_events = round(rik_html.tree().xpath("count(//*[@id=\"c51\"]/div/div/a)"))
-rik_count_num_past_events = round(rik_html.tree().xpath("count(//*[@id=\"c111\"]/div/div/a)"))
+rik_count_num_current_events = round(gh.rik_html.tree().xpath("count(//*[@id=\"c51\"]/div/div/a)"))
+rik_count_num_past_events = round(gh.rik_html.tree().xpath("count(//*[@id=\"c111\"]/div/div/a)"))
 rik_num_current_events = list(range(1, rik_count_num_current_events+1))
 rik_num_past_events = list(range(1, rik_count_num_past_events+1))
 
@@ -106,7 +105,7 @@ capacity_warning.cap_warning()
 # FUELS
 past_events_titles = list()
 for events in num_past_events:
-    past_event = fuels_html.tree().xpath('//*[@id="past_events"]/div[' + str(events) + ']/div[1]/h3/a/text()[1]')
+    past_event = gh.fuels_html.tree().xpath('//*[@id="past_events"]/div[' + str(events) + ']/div[1]/h3/a/text()[1]')
     past_events_titles.append(past_event[0])
 
 # selects all database entries and gets their total number, which does not necessarily 
@@ -143,7 +142,7 @@ for event in list_num_db_entries:
 current_fuels_events = list()
 for event in num_current_events:
     # checks if event is already in database
-    new_event = fuels_html.tree().xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/text()[1]')[0]
+    new_event = gh.fuels_html.tree().xpath('//*[@id="current_events"]/div[' + str(event) + ']/div[1]/h3/a/text()[1]')[0]
     current_fuels_events.append(new_event)
     
 # this section needs to be run again because it might be outdated if events have been
@@ -176,7 +175,7 @@ for event in list_num_db_entries:
 
 past_events_titles = list()
 for event in lsi_num_past_events:
-    past_event = lsi_past_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
+    past_event = gh.lsi_past_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')
     past_events_titles.append(past_event[0])
 
 # selects all database entries and gets their total number, which does not necessarily 
@@ -213,7 +212,7 @@ for event in list_num_db_entries:
 current_lsi_events = list()
 for event in lsi_num_current_events:
     # checks if event is already in database
-    new_event = lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')[0]
+    new_event = gh.lsi_current_events_html.tree().xpath('//article[' + str(event) + ']/div[2]/h2/a/span/text()[1]')[0]
     current_lsi_events.append(new_event)
 print("list I'm searching for : " + str(current_lsi_events))
     
@@ -247,7 +246,7 @@ for event in list_num_db_entries:
 
 past_events_titles = list()
 for event in rik_num_past_events:
-    past_event = rik_html.tree().xpath('//*[@id="c111"]/div/div/a[' + str(event) + ']/@title')
+    past_event = gh.rik_html.tree().xpath('//*[@id="c111"]/div/div/a[' + str(event) + ']/@title')
     past_event = past_event[0].replace(u'\xa0', u' ')
     past_events_titles.append(past_event)
 
@@ -285,7 +284,7 @@ for event in list_num_db_entries:
 current_rik_events = list()
 for event in rik_num_current_events:
     # checks if event is already in database (I think this is a wrong description)
-    new_event = rik_html.tree().xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/@title')
+    new_event = gh.rik_html.tree().xpath('//*[@id="c51"]/div/div/a[' + str(event) + ']/@title')
     new_event = new_event[0].replace(u'\xa0', u' ')
     current_rik_events.append(new_event)
 print("list I'm searching for : " + str(current_rik_events))
@@ -326,7 +325,7 @@ tree2 = html.fromstring(t.content, parser=parser)
 my_html = t.text
 
 xpath_count = "count(//*[@class=\"editor-content hyphens\"]//h3)"
-count = round(lsc_html.tree().xpath(xpath_count))
+count = round(gh.lsc_html.tree().xpath(xpath_count))
 count_list = list(range(0, count-1))
 
 c.execute('''SELECT html_insert FROM upcoming_events''')
@@ -340,7 +339,7 @@ lsc_events = list()
 # but current because things might change in between
 # note: I am not sure if the class method will run once more here or take the original value.
 # if the latter should be the case, this won't work anymore.
-soup = BeautifulSoup(lsc_html.fulltext(), "html.parser")
+soup = BeautifulSoup(gh.lsc_html.fulltext(), "html.parser")
 data = soup.find_all("div", {"class" : "editor-content hyphens"})
 data_string = str(data[0])
 soup = BeautifulSoup(''.join(data_string))
