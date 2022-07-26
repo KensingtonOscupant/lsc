@@ -16,12 +16,12 @@ A log of the application's recent activity can be found at <a href="https://www.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[b. "After the click"](#b-after-the-click)  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2. Frontend](#2-Frontend)  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[3. Deployment](#3-Deployment)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[a. Preliminary remarks](#a-preliminary-remarks)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[b. Initial setup](#b-initial-setup)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[c. Amended setup](#c-amended-setup)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[d. Virtualizing Chrome on Linux](#d-virtualizing-chrome-on-linux)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[e. Cron jobs](#e-cron-jobs)
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[f. Proxying traffic through Cloudflare](#f-proxying-traffic-through-cloudflare)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[a. Preliminary remarks](#a-preliminary-remarks)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[b. Initial setup](#b-initial-setup)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[c. Amended setup](#c-amended-setup)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[d. Virtualizing Chrome on Linux](#d-virtualizing-chrome-on-linux)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[e. Cron jobs](#e-cron-jobs)  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[f. Proxying traffic through Cloudflare](#f-proxying-traffic-through-cloudflare)  
 
 ## I. Context
 
