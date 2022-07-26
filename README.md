@@ -93,7 +93,7 @@ To automate executions, I used the built-in Linux scheduler cron. In order to ru
 
 #### f. Proxying traffic through Cloudflare
 
-All traffic to the website is proxied through CloudFlare.
+All traffic to lscwebservice.com is proxied through CloudFlare.
 
 
 
