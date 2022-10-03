@@ -9,7 +9,7 @@ def convert_month(month):
         return "01"
     if month == "Feb" or month == "Februar":
         return "02"
-    if month == "Mar" or month == "März":
+    if month == "Mar" or month == "Mär" or month == "März":
         return "03"
     if month == "Apr" or month == "April":
         return "04"
@@ -23,11 +23,11 @@ def convert_month(month):
         return "08"
     if month == "Sep" or month == "September":
         return "09"
-    if month == "Oct" or month == "Oktober":
+    if month == "Oct" or month == "Okt" or month == "Oktober":
         return "10"
     if month == "Nov" or month == "November":
         return "11"
-    if month == "Dec" or month == "Dezember":
+    if month == "Dec" or month == "Dez" or month == "Dezember":
         return "12"
 
 def convert_month_back(month_num):
